@@ -1,0 +1,45 @@
+{
+    "htmlPath": "apphtml",
+    "title": "Chondric Example App",
+    "appHost": "apphost",
+    "defaultRoute": "/start",
+    "pages": [{
+        "id": "start",
+        "title": "Start"
+    }, {
+        "type": "section",
+        "id": "sectionid",
+        "route": "/section/$sectionParam",
+        "title": "Section with controller shared by subpages"
+    }, {
+        "id": "sectionpage1",
+        "route": "/section/$sectionParam/page1/$pageParam",
+        "title": "Section Page 1"
+    }, {
+        "id": "sectionpage2",
+        "route": "/section/$sectionParam/page1/$pageParam",
+        "title": "Section Page 2"
+    }, {
+        "id": "subfolderpage",
+        "title": "Page in a subfolder",
+        "folder": "subfolder"
+    }, {
+        "id": "staticpage",
+        "title": "Scriptless Content Page",
+        "scriptless": true
+    }, {
+        "id": "modalpage1",
+        "title": "Modal Page 1"
+    }, {
+        "id": "modalpage2",
+        "title": "Modal Page 2"
+    }, {
+        "id": "customtemplate",
+        "title": "Scriptless Content Page",
+        "pageTemplate": "templates/pagetemplate2.html",
+        "pageScriptTemplate": "templates/pagetemplate2.js"
+    }],
+    "pageTemplate": "templates/pagetemplate.html",
+    "pageScriptTemplate": "templates/pagetemplate.js"
+
+}
