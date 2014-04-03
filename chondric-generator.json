@@ -1,10 +1,10 @@
 {
     "Procfile": "9f9cf10c2991738045960bcf201e4349379541af",
-    "apphost.js": "7a07b249f7bc75099e2499facfc40902482b499c",
-    "package.json": "b5fa0038c146acbd42cab04934100d3236f9f98a",
+    "apphost.js": "edda4ac020129944d31180ca5c445cd072483e26",
+    "package.json": "b4e7bb38026de53a21a4b517ae38fb7b845be0de",
     ".env": "e51ef4ef249400088b99f1cc9aa68f7b1cfcb3d9",
     ".gitignore": "8c9ccb989f17fdd68ae996eb758b7d5af868974e",
-    ".bowerrc": "56df54e28b9da5c5036cc44cdd6ad0726d1d0a0a",
+    ".bowerrc": "72de93a0d9a4706b7da33e930cf22fc2ef31ee11",
     "bower.json": "bb2f69bac988b4414161e003ea7c00020ca4d83b",
     "app.js": "31c4deb3b42a15c83ed6199d6bc8b198b96d2f24",
     "db.js": "5721ab1e812417cdcb8fbb52290dea00bb76c579",

@@ -1,4 +1,4 @@
-/*! chondric-tools 2014-03-27 */
+/*! chondric-tools 2014-04-03 */
 // ie doesn't like console.log
 
 if (!window.console) {
@@ -13,7 +13,23 @@ var Chondric = angular.module('chondric', [])
 Chondric.App =
     Chondric.initApp = function(options) {
         var app = {};
-        var appModule = app.module = angular.module(options.name || "appModule", ['chondric'].concat(options.angularModules || []));
+        var controllerPreload = {};
+        var appModule = app.module = angular.module(options.name || "appModule", ['chondric'].concat(options.angularModules || []),
+            function($controllerProvider) {
+                app.controllerProvider = $controllerProvider;
+                for (var cn in controllerPreload || {}) {
+                    registerController(cn, controllerPreload[cn]);
+                }
+            });
+
+        function registerController(name, func) {
+            if (app.controllerProvider) {
+                app.controllerProvider.register(name, func);
+                delete controllerPreload[name];
+            } else {
+                controllerPreload[name] = func;
+            }
+        }
 
         var allRoutes = app.allRoutes = {}
 
@@ -38,20 +54,23 @@ Chondric.App =
 
             var allControllers = [];
             var page = {};
-            if (viewOptions.initAngular) viewOptions.initAngular.call(page);
+            if (viewOptions.initAngular) {
+                viewOptions.initAngular.call(page);
+                viewOptions.controllers = viewOptions.controllers || page.controllers;
+            }
             var pageController = null;
             if (viewOptions.controller) {
-                // use this controller with name based on id or random
                 pageController = viewOptions.controller;
             }
-            for (var cn in page.controllers) {
+            for (var cn in viewOptions.controllers || {}) {
                 if (!pageController) {
-                    pageController = page.controllers[cn];
-                    continue;
-                };
-                // todo: register other controllers
+                    pageController = viewOptions.controllers[cn];
+                }
+                registerController(cn, viewOptions.controllers[cn]);
             }
-
+            if (!pageController) {
+                console.error("View " + (viewOptions.templateId || viewOptions.route) + " has no controller");
+            }
             var route = viewOptions.route || ("/" + viewOptions.templateId + "/$p1/$p2");
             var templateUrl = viewOptions.templateId + ".html";
             if (viewOptions.templateFolder) templateUrl = viewOptions.templateFolder + "/" + templateUrl;
@@ -72,10 +91,9 @@ Chondric.App =
 
             for (var cn in viewOptions.controllers || {}) {
                 if (!pageController) {
-                    pageController = page.controllers[cn];
-                    continue;
+                    pageController = viewOptions.controllers[cn];
                 };
-                // todo: register other controllers
+                registerController(cn, viewOptions.controllers[cn]);
             }
 
             var route = viewOptions.route;
@@ -163,7 +181,15 @@ Chondric.App =
                 }
             }
 
-            $scope.changePage = app.changePage = function(r, transition) {
+            $scope.changePage = app.changePage = function(p, transition) {
+                if (p instanceof Array) {
+                    var r = "";
+                    for (var i = 0; i < p.length; i++) {
+                        r += "/" + p[i];
+                    }
+                } else {
+                    var r = p;
+                }
                 if (!r || r.indexOf("/") < 0) {
                     console.error("changePage syntax has changed - the first parameter is a route url instead of an id");
                     return;
@@ -186,6 +212,7 @@ Chondric.App =
                 $scope.nextRoute = null;
                 $scope.lastRoute = oldVal;
                 console.log("Route changed to " + url + " from " + oldVal);
+                if (url) document.location.hash = url;
                 loadView(url);
             })
             if (options.appCtrl) options.appCtrl($scope);
@@ -1138,71 +1165,98 @@ Chondric.directive('ngTap', function() {
         element.addClass('tappable');
         // eanble use of app global in angular expression if necessary
         if (attrs.ngTap && attrs.ngTap.indexOf("app.") == 0 && !scope.app) scope.app = app;
-        var tapping = false;
+
+        var active = false;
         var touching = false;
-        var clicking = false;
 
+        // detect move and cancel tap if drag started
+        var move = function(e) {
+            cancel(e);
+            //touching = false;
+            //active = false;
+        }
 
-        var touchstart = function(e) {
-            element.addClass('active');
-            element.removeClass('deactivated');
-            tapping = true;
-        };
+        // called if the mouse moves too much or leaves the element
+        var cancel = function() {
+            if (touching) {
+                element.unbind('touchmove', move);
+                element.unbind('touchend', action);
+            } else {
+                element.unbind('mousemove', move);
+                element.unbind('mouseout', cancel);
+                element.unbind('mouseup', action);
+            }
 
-        var touchmove = function(e) {
             element.removeClass('active');
             element.addClass('deactivated');
-            if (tapping) {
-                tapping = false;
+
+            touching = false;
+            active = false;
+        }
+
+        // called when a tap is completed
+        var action = function(e) {
+
+            scope.lastTap = {
+                element: element,
+                x: e.originalEvent.changedTouches ? e.originalEvent.changedTouches.pageX : e.pageX,
+                y: e.originalEvent.changedTouches ? e.originalEvent.changedTouches.pageY : e.pageY
             }
-        };
+            scope.$apply(attrs['ngTap'], element);
 
-        var touchend = function(e) {
 
+            if (touching) {
+                element.unbind('touchmove', move);
+                element.unbind('touchend', action);
+            } else {
+                element.unbind('mousemove', move);
+                element.unbind('mouseout', cancel);
+                element.unbind('mouseup', action);
+            }
+            touching = false;
+            active = false;
 
             element.removeClass('active');
-            if (tapping) {
-                tapping = false;
+            element.addClass('deactivated');
 
 
-                scope.lastTap = {
-                    element: element,
-                    x: e.originalEvent.changedTouches ? e.originalEvent.changedTouches.pageX : e.pageX,
-                    y: e.originalEvent.changedTouches ? e.originalEvent.changedTouches.pageY : e.pageY
+        }
+
+            function start() {
+
+                if (touching) {
+                    element.bind('touchmove', move);
+                    element.bind('touchend', action);
+
+                } else {
+                    element.bind('mousemove', move);
+                    element.bind('mouseout', cancel);
+                    element.bind('mouseup', action);
                 }
-                scope.$apply(attrs['ngTap'], element);
+
+                element.addClass('active');
+                element.removeClass('deactivated');
+                active = true;
             }
-            clicking = false;
-            //   touching = false;
-            tapping = false;
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        };
 
-        element.bind('mousedown', function(e) {
-            if (touching) return;
-            clicking = true;
-            touchstart(e);
-        });
+            // called on mousedown or touchstart. Multiple calls are ignored.
+        var mouseStart = function() {
+            if (active) return;
+            touching = false;
+            start();
+        }
 
-        element.bind('touchstart', function(e) {
+        var touchStart = function() {
+            if (active) return;
             touching = true;
-            touchstart(e)
-        });
-
-        element.bind('touchmove mousemove', touchmove);
-
-        element.bind('touchend', touchend);
-
-        element.bind('mouseup', function(e) {
-            if (touching || !clicking) return;
-            touchend(e);
-            clicking = false;
-        });
+            start();
+        }
 
 
-        element.bind('tap click', function(e) {});
+
+        element.bind('mousedown', mouseStart);
+        element.bind('touchstart', touchStart);
+
     };
 })
 Chondric.directive("cjsPopover", function() {
@@ -1290,10 +1344,11 @@ Chondric.directive('chondricViewport', function($compile) {
     return {
         scope: true,
         link: function(scope, element, attrs) {
-//            console.log("viewport directive");
+            //            console.log("viewport directive");
             var rk = scope.$eval("rk");
             var rv = scope.$eval("rv");
             if (rv) scope.pageParams = rv.params || {};
+            if (rk) scope.pageRoute = rk;
 
             if (!rk && attrs["chondric-viewport"] == "1") return;
 
@@ -1301,10 +1356,10 @@ Chondric.directive('chondricViewport', function($compile) {
             if (!rv) {
                 // first level
                 element.addClass("chondric-viewport");
-//                template = "<div class=\"chondric-viewport\">"
+                //                template = "<div class=\"chondric-viewport\">"
                 template = "<div ng-repeat=\"(rk, rv) in openViews\" chondric-viewport=\"1\" class=\"{{transition}} {{rv.templateId}}\" ng-class=\"{'chondric-section': rv.isSection, 'chondric-page': !rv.isSection, active: rk == route, next: rk == nextRoute, prev: rk == lastRoute, notransition: noTransition}\" route=\"{{rk}}\">"
                 template += "</div>"
-//                template += "</div>"
+                //                template += "</div>"
 
             } else if (rv.isSection) {
                 template = "<div ng-controller=\"rv.controller\" >"
@@ -1326,7 +1381,6 @@ Chondric.directive('chondricViewport', function($compile) {
         }
     }
 });
-
 Chondric.Syncable = function(options) {
     var syncable = this;
 
