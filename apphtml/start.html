@@ -25,9 +25,11 @@
 </p>
 </div>
 
-<button ng-tap="popup1=lastTap">Button {{popup1.x}}</button>
+<button ng-tap="showModal('popup1', lastTap)">Popover</button>
+<button ng-tap="showModal('popup1', lastTap)">Popover</button>
+<button ng-tap="showModal('popup1', lastTap)">Popover</button>
 
-<button class="fullwidth" ng-tap="popup2='pop2'">Button {{popup2}}</button>
+<button class="fullwidth" ng-tap="showModal('popup2', 'value')">Button {{popup2}}</button>
 
 <div>
 
@@ -55,9 +57,10 @@
 </div>
 
 <div class="popup1" cjs-popover="popup1">
-<button ng-tap="popup1=null">Button {{popup1.x}}</button>
-<button ng-tap="popup1=null">Button {{popup1.y}}</button>
-<button ng-tap="popup1=null">Button {{popup1.x}}</button>
+<div class="poparrow"></div>
+<button ng-tap="hideModal('popup1')">Button {{popup1.x}}</button>
+<button ng-tap="hideModal('popup1')">Button {{popup1.y}}</button>
+<button ng-tap="hideModal('popup1')">Button {{popup1.x}}</button>
 </div>
 
 <div class="popup2" cjs-popup="popup2">
@@ -65,7 +68,7 @@
         <h1>
             Popup
         </h1>
-        <button href="" ng-tap="popup2=null" class="right">Done</button>
+        <button href="" ng-tap="hideModal('popup2')" class="right">Done</button>
     </div>
 
     <div class="body">
@@ -74,7 +77,7 @@
 <div class="contentblock">
 This is popup 2 {{popup2}}
 </div>
-<button ng-tap="popup2=null">Button {{popup2}}</button>
+<button ng-tap="hideModal('popup2')">Button {{popup2}}</button>
 </div>
 </div>
 
