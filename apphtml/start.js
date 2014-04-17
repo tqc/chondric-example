@@ -5,8 +5,19 @@ app.createViewTemplate({
     controller: function($scope) {
         $scope.exampleValue = "Example";
 
-        $scope.leftRoute = "/modalpage1";
-        $scope.rightRoute = "/modalpage2";
+
+        $scope.swipeNav = {
+            leftBorder: {
+                type: "changePage",
+                route: "/modalpage1",
+                transition: "slideright"
+            },
+            rightBorder: {
+                type: "sidePanel",
+                panel: "navMenu",
+                transition: "coverRight"
+            }
+        }
 
         $scope.exampleFunction = function() {
             $scope.exampleValue = '';

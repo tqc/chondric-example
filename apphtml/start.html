@@ -1,70 +1,73 @@
-    <div class="navbar">
-        <button ng-tap="app.changePage('/subfolderpage', 'slideleft')" class="left button icon icon-left icon-leftarrow">Back</button>
-        <h1>
-            Start
-        </h1>
-        <button href="" ng-tap="app.changePage('/subfolderpage','slideright')" class="right button icon icon-right icon-rightarrow">Next</button>
-    </div>
+<div class="navbar">
+    <button ng-tap="app.changePage('/subfolderpage', 'slideleft')" class="left button icon icon-left icon-leftarrow">Back</button>
+    <h1>
+        Start
+    </h1>
+    <button href="" ng-tap="app.changePage('/subfolderpage','slideright')" class="right button icon icon-right icon-rightarrow">Next</button>
+</div>
 <div class="tabbar">
 
-<button ng-tap="" class="selected icon-top icon-default">Tab 1</button>
+    <button ng-tap="" class="selected icon-top icon-default">Tab 1</button>
 
-<button ng-tap="" class="icon-top icon-default">Tab 2</button>
+    <button ng-tap="" class="icon-top icon-default">Tab 2</button>
 
-<button ng-tap="" class="icon-top icon-default">Tab 3</button>
-
-</div>
-
-
-    <div class="body" cjs-swipe>
-
-<h2>Left Section</h2>
-
-<div class="contentblock">
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-</p>
-</div>
-
-<button ng-tap="showModal('popup1', lastTap)">Popover</button>
-<button ng-tap="showModal('popup1', lastTap)">Popover</button>
-<button ng-tap="showModal('popup1', lastTap)">Popover</button>
-
-<button class="fullwidth" ng-tap="showModal('popup2', 'value')">Button {{popup2}}</button>
-
-<div>
-
-<div class="col2">
-
-<div class="contentblock">
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-</p>
-</div>
-
+    <button ng-tap="" class="icon-top icon-default">Tab 3</button>
 
 </div>
 
-<div class="col2">
 
-<div class="contentblock">
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-</p>
-</div>
+<div class="body" cjs-swipe>
 
-</div>
-</div>
+    <h2>Left Section</h2>
+
+    <div class="contentblock">
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+    </div>
+
+    <button ng-tap="showModal('popup1', lastTap)">Popover</button>
+    <button ng-tap="showModal('popup1', lastTap)">Popover</button>
+    <button ng-tap="showModal('popup1', lastTap)">Popover</button>
+
+    <button class="fullwidth" ng-tap="showModal('popup2', 'value')">Button {{popup2}}</button>
+
+    <button ng-tap="showModal('navMenu', { progress: 1 })">Right Menu</button>
+
+
+    <div>
+
+        <div class="col2">
+
+            <div class="contentblock">
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                </p>
+            </div>
+
+
+        </div>
+
+        <div class="col2">
+
+            <div class="contentblock">
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                </p>
+            </div>
+
+        </div>
+    </div>
 
 
 </div>
 
 <div class="popup1" cjs-popover="popup1">
-<div class="poparrow"></div>
-<button ng-tap="hideModal('popup1')">Button {{popup1.x}}</button>
-<button ng-tap="hideModal('popup1')">Button {{popup1.y}}</button>
-<button ng-tap="hideModal('popup1')">Button {{popup1.x}}</button>
+    <div class="poparrow"></div>
+    <button ng-tap="hideModal('popup1')">Button {{popup1.x}}</button>
+    <button ng-tap="hideModal('popup1')">Button {{popup1.y}}</button>
+    <button ng-tap="hideModal('popup1')">Button {{popup1.x}}</button>
 </div>
 
 <div class="popup2" cjs-popup="popup2">
-        <div class="navbar">
+    <div class="navbar">
         <h1>
             Popup
         </h1>
@@ -73,14 +76,20 @@
 
     <div class="body">
 
-<h2>Left Section</h2>
-<div class="contentblock">
-This is popup 2 {{popup2}}
+        <h2>Left Section</h2>
+        <div class="contentblock">
+            This is popup 2 {{popup2}}
+        </div>
+        <button ng-tap="hideModal('popup2')">Button {{popup2}}</button>
+    </div>
 </div>
-<button ng-tap="hideModal('popup2')">Button {{popup2}}</button>
-</div>
+
+<div class="sidepanel" cjs-sidepanel="navMenu">
+    <div class="navbar">
+        <h1>Menu</h1>
+    </div>
+    <div class="body">
+    </div>
 </div>
 
 <div class="modal-overlay"></div>
-
-
