@@ -1,5 +1,5 @@
-var chondric = require("../ChondricJS/chondric-tools");
-//var chondric = require("chondric-tools");
+//var chondric = require("../ChondricJS/chondric-tools");
+var chondric = require("chondric-tools");
 require("envloader").load();
 
 var app = chondric.hostApp({

@@ -4,11 +4,19 @@ app.createViewTemplate({
     route: "/subfolderpage",
     controller: function($scope) {
 
+
         $scope.setSharedHeader($scope.rk, {
-            title: "Testing another title"
+            scope: $scope,
+            title: "Testing another title",
+            leftButtons: [{
+                title: "Left",
+                action: "changePage('/start', 'slideleft')"
+            }],
+            rightButtons: [{
+                title: "Right",
+                action: "changePage('/start', 'slideright')"
+            }],
         })
-
-
         $scope.exampleValue = "Example";
 
         $scope.exampleFunction = function() {

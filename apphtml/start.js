@@ -6,11 +6,29 @@ app.createViewTemplate({
         $scope.exampleValue = "Example";
 
         $scope.setSharedHeader($scope.rk, {
-            title: "Test Title 1"
+            scope: $scope,
+            title: "Test Title 1",
+            leftButtons: [{
+                title: "Left",
+                action: "changePage('/subfolderpage', 'slideleft')"
+            }],
+            rightButtons: [{
+                title: "Dropdown",
+                items: [{
+                    title: "Item 1",
+                    action: "action1()"
+                }, {
+                    title: "Item 2",
+                    action: "action2()"
+                }]
+            }, {
+                title: "Item 2",
+                action: "action2()"
+            }],
         })
 
-        $scope.showPopupMenu = function(lastTap) {
-            app.showPopupMenu({
+        $scope.popup = function(lastTap) {
+            $scope.showPopupMenu({
                 scope: $scope,
                 element: lastTap.element,
                 items: [{
