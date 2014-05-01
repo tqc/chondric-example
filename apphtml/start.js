@@ -5,18 +5,14 @@ app.createViewTemplate({
     controller: function($scope) {
         $scope.exampleValue = "Example";
 
-
         app.setSharedUiComponentState($scope, "standardnavigationbar", true, true, {
             title: "Test Title 1",
             leftButtons: [{
-                title: "Item 1",
-                action: "action1()"
-            }, {
-                title: "Item 2",
-                action: "action2()"
+                title: "Left",
+                action: "changePage('/subfolderpage', 'slideleft')"
             }],
             rightButtons: [{
-                title: "Menu",
+                title: "Dropdown",
                 items: [{
                     title: "Item 1",
                     action: "action1()"
@@ -25,12 +21,9 @@ app.createViewTemplate({
                     action: "action2()"
                 }]
             }],
-
-
         })
 
-
-        $scope.showPopupMenu = function(lastTap) {
+        $scope.popup = function(lastTap) {
             app.setSharedUiComponentState($scope, "popupmenu", true, true, {
                 element: lastTap.element,
                 items: [{

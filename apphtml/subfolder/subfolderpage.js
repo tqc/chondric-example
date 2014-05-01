@@ -3,12 +3,17 @@ app.createViewTemplate({
     templateFolder: "subfolder",
     route: "/subfolderpage",
     controller: function($scope) {
-
         app.setSharedUiComponentState($scope, "standardnavigationbar", true, true, {
-            title: "Testing another title"
+            title: "Testing another title",
+            leftButtons: [{
+                title: "Left",
+                action: "changePage('/start', 'slideleft')"
+            }],
+            rightButtons: [{
+                title: "Right",
+                action: "changePage('/start', 'slideright')"
+            }],
         })
-
-
         $scope.exampleValue = "Example";
 
         $scope.exampleFunction = function() {
