@@ -5,13 +5,33 @@ app.createViewTemplate({
     controller: function($scope) {
         $scope.exampleValue = "Example";
 
-        $scope.setSharedHeader($scope.rk, {
-            title: "Test Title 1"
+
+        app.setSharedUiComponentState($scope, "standardnavigationbar", true, true, {
+            title: "Test Title 1",
+            leftButtons: [{
+                title: "Item 1",
+                action: "action1()"
+            }, {
+                title: "Item 2",
+                action: "action2()"
+            }],
+            rightButtons: [{
+                title: "Menu",
+                items: [{
+                    title: "Item 1",
+                    action: "action1()"
+                }, {
+                    title: "Item 2",
+                    action: "action2()"
+                }]
+            }],
+
+
         })
 
+
         $scope.showPopupMenu = function(lastTap) {
-            app.showPopupMenu({
-                scope: $scope,
+            app.setSharedUiComponentState($scope, "popupmenu", true, true, {
                 element: lastTap.element,
                 items: [{
                     title: "Item 1",

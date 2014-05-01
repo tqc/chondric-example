@@ -4,7 +4,7 @@ app.createViewTemplate({
     route: "/subfolderpage",
     controller: function($scope) {
 
-        $scope.setSharedHeader($scope.rk, {
+        app.setSharedUiComponentState($scope, "standardnavigationbar", true, true, {
             title: "Testing another title"
         })
 
