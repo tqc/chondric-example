@@ -4,6 +4,25 @@ app.createViewTemplate({
     route: "/start",
     controller: function($scope) {
         $scope.exampleValue = "Example";
+        var loadTask1 = {
+            title: "Loading Part 1",
+            progressCurrent: 0,
+            progressTotal: 10,
+            message: "Message Here...",
+            error: null
+        };
+        $scope.testLoadStatus = {
+            tasks: [loadTask1]
+        }
+
+        function fakeLoad() {
+            loadTask1.progressCurrent++;
+            $scope.$apply();
+            if (loadTask1.progressCurrent < 10) {
+                window.setTimeout(fakeLoad, 100)
+            }
+        }
+        window.setTimeout(fakeLoad, 100)
 
         app.setSharedUiComponentState($scope, "cjs-navigation-bar", true, true, {
             title: "Test Title 1",

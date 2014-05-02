@@ -2,7 +2,7 @@ var app = new Chondric.App({
     name: "Chondric Example App",
     mightBePhoneGap: true,
     scriptGroups: [],
-    angularModules: [],
+    angularModules: ["ui.utils"],
     firstPageTemplate: "/start",
     firstPageDataId: "",
     getDatabase: function() {
