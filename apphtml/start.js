@@ -5,7 +5,7 @@ app.createViewTemplate({
     controller: function($scope) {
         $scope.exampleValue = "Example";
 
-        app.setSharedUiComponentState($scope, "standardnavigationbar", true, true, {
+        app.setSharedUiComponentState($scope, "cjs-navigation-bar", true, true, {
             title: "Test Title 1",
             leftButtons: [{
                 title: "Left",
@@ -23,8 +23,26 @@ app.createViewTemplate({
             }],
         })
 
+        var rightPanelData = {
+            templateUrl: "popuptemplate.html"
+        }
+
+        app.setSharedUiComponentState($scope, "cjs-right-panel", false, true, rightPanelData);
+
+
+        $scope.showSharedPopup = function(lastTap) {
+            app.setSharedUiComponentState($scope, "cjs-shared-popup", true, true, {
+                templateUrl: "popuptemplate.html"
+            });
+        }
+
+        $scope.showRightPanel = function(lastTap) {
+            app.setSharedUiComponentState($scope, "cjs-right-panel", true, true, rightPanelData);
+        }
+
+
         $scope.popup = function(lastTap) {
-            app.setSharedUiComponentState($scope, "popupmenu", true, true, {
+            app.setSharedUiComponentState($scope, "cjs-action-sheet", true, true, {
                 element: lastTap.element,
                 items: [{
                     title: "Item 1",
@@ -34,6 +52,10 @@ app.createViewTemplate({
                     action: "action2()"
                 }]
             })
+        }
+
+        $scope.readPopupResult = function(value) {
+            alert(value);
         }
 
         $scope.action1 = function() {
@@ -49,17 +71,27 @@ app.createViewTemplate({
                 type: "changePage",
                 route: "/subfolderpage",
                 transition: "slideright"
-            },
+            }
+            /*,
             rightBorder: {
                 type: "sidePanel",
                 panel: "navMenu",
                 transition: "coverRight"
-            }
+            }*/
         }
 
         $scope.exampleFunction = function() {
             $scope.exampleValue = '';
         };
     },
-    controllers: {}
+    controllers: {
+        sharedPopupController: function($scope) {
+            $scope.valueFromPopupController = "Testing..."
+            $scope.savePopupResults = function() {
+                $scope.hideModal();
+                $scope.handleAction("readPopupResult", $scope.valueFromPopupController)
+            }
+        }
+
+    }
 });

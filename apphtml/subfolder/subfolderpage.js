@@ -3,7 +3,7 @@ app.createViewTemplate({
     templateFolder: "subfolder",
     route: "/subfolderpage",
     controller: function($scope) {
-        app.setSharedUiComponentState($scope, "standardnavigationbar", true, true, {
+        app.setSharedUiComponentState($scope, "cjs-navigation-bar", true, true, {
             title: "Testing another title",
             leftButtons: [{
                 title: "Left",

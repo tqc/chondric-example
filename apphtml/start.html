@@ -22,9 +22,13 @@
     <button ng-tap="showModal('popup1', lastTap)">Popover</button>
     <button ng-tap="showModal('popup1', lastTap)">Popover</button>
 
+    <button class="fullwidth" ng-tap="showSharedPopup()">Shared Popup</button>
+
     <button class="fullwidth" ng-tap="showModal('popup2', 'value')">Button {{popup2}}</button>
 
+
     <button ng-tap="showModal('navMenu', { progress: 1 })">Right Menu</button>
+    <button ng-tap="showRightPanel()">Shared Right Menu</button>
 
 
     <div>
@@ -71,7 +75,7 @@
 
         <h2>Left Section</h2>
         <div class="contentblock">
-            This is popup 2 {{popup2}}
+            This is local popup 2 {{popup2}}
         </div>
         <button ng-tap="hideModal('popup2')">Button {{popup2}}</button>
     </div>
