@@ -1,10 +1,11 @@
-/*! chondric-tools 2014-04-03 */
+/*! chondric-tools 0.4.1 */
 body {
     font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
     color: #000;
     font-size: 14px;
     line-height: 1.4;
     background-color: #888;
+    -webkit-tap-highlight-color:transparent;
 }
 .chondric-viewport {
     position: absolute;
@@ -18,7 +19,6 @@ body {
 .chondric-section {
 }
 .chondric-page {
-    background-color: white;
     position: absolute;
     top:0;
     left:0;
@@ -71,16 +71,17 @@ body {
     z-index: 1;
     -webkit-transition: -webkit-transform 0.2s linear, opacity 0.9s ease-in-out, z-index 0.9s linear, visibility 0.9s linear;
 }
-* {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    /* Disable selection/Copy of UIWebView */
+
+.chondric-viewport {
+-webkit-user-select:none;
 }
-input, textarea {
+
+input, textarea, [contenteditable=true] {
+-webkit-user-select:auto;
     -webkit-touch-callout: auto;
-    -webkit-user-select: auto;
-    /* Enable selection/Copy of UIWebView */
 }
+
+
 .clear {
     clear: both;
 }
@@ -278,6 +279,15 @@ button.icon-only {
     border-bottom: 1px solid #c4c4c4;
     font-size: 17px;
 }
+
+.navbar>.v1,.navbar>.v2 {
+     position: absolute;
+    top:0;
+    left: 0;
+    right:0;
+    bottom: 0;
+}
+
 .hasstatusbar .navbar {
     top:20px;
 }
@@ -288,10 +298,10 @@ button.icon-only {
     color: #007aff;
     background: transparent;
     border: none;
-    padding: 0 10px;
+    padding: 0 5px;
     line-height: 44px;
     height: 44px;
-    margin: 0;
+    margin: 0 5px;
     font-size: inherit;
 }
 .navbar button.active {
@@ -307,8 +317,8 @@ button.icon-only {
 .navbar h1 {
     position: absolute;
     top:0;
-    left: 0;
-    right:0;
+    left: 33%;
+    right:33%;
     margin: 0;
     text-align: center;
     font-size: 17px;
@@ -316,7 +326,32 @@ button.icon-only {
     font-weight: 500;
     z-index: -1;
     text-overflow: ellipsis;
+    white-space: nowrap;
+overflow: hidden;
 }
+
+.navbar input.h1 {
+position: absolute;
+top: 0;
+left: 33%;
+right: 33%;
+margin: 0;
+text-align: center;
+font-size: 17px;
+line-height: 44px;
+font-weight: 500;
+z-index: -1;
+text-overflow: ellipsis;
+width: 34%;
+padding: 0;
+border: none;
+outline: none;
+-webkit-appearance: none;
+background-color: transparent;
+}
+}
+
+
 /* Menu bar */
 
 /* A bar with text buttons like the nav bar but that can appear anywhere */
@@ -393,7 +428,7 @@ button.icon-only {
     left:0;
     right:0;
     bottom:0;
-    padding: 40px 0 80px 0;
+    padding: 45px 0 80px 0;
     z-index: 1;
 }
 .hasstatusbar .body {
@@ -524,6 +559,16 @@ button.icon-only {
     margin: 10px 15px 9px;
     font-weight: normal;
 }
+
+input.inline {
+    background-color: inherit;
+outline: none;
+border: none;
+font: inherit;
+color: inherit;
+text-transform: inherit;
+}
+
 .contentblock {
     background: #fff;
     padding: 10px 15px;
@@ -560,6 +605,167 @@ button.icon-only {
 .smallform h1 {
     font-weight: 100;
     text-align: center;
+}
+
+
+/* angular ui-toggle - mostly used in conjunction with loading overlay */
+.ui-show {
+  -webkit-transition: opacity 0.3s ease; 
+}
+.ui-hide {
+  opacity: 0;
+}
+
+/* Shared Header */ 
+
+.sharedheader {
+position: fixed;
+z-index: 999;
+top: -50px;
+opacity: 1;
+}
+
+.sharedheader.active {
+top: 0px;
+}
+.sharedheader > div {
+position: absolute;
+left: 0;
+right: 0;
+top: 0;
+bottom: 0;
+}
+/* */
+.cjs-loading-overlay-container {
+    position: relative;
+}
+/* Loading overlay */
+ .cjs-loading-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: transparent;
+    pointer-events:none;
+    z-index: 1000;
+    text-align: center;
+    font-size: large;
+}
+
+.cjs-loading-overlay-compact {
+    text-align: left;
+}
+
+.cjs-loading-overlay .error {
+    color:red;
+}
+
+.cjs-loading-overlay-full .error {
+    margin-top: 270px;
+}
+
+.cjs-loading-overlay-compact .error {
+display: inline;
+text-align: left;
+}
+
+
+.cjs-loading-overlay .message {
+
+}
+
+.cjs-loading-overlay-full .message {
+    
+}
+
+.cjs-loading-overlay-compact .message {
+display: inline;
+text-align: left;
+}
+
+.cjs-loading-overlay-compact .buttons {
+display: inline;
+}
+
+.cjs-loading-overlay button {
+    margin-top: 30px;
+    display: inline-block;
+}
+
+.cjs-loading-overlay-compact button {
+    margin: 5px;
+}
+
+/* css spinner from http://lea.verou.me/2013/11/cleanest-css-spinner-ever/ */
+
+/**
+ * (C)Leanest CSS spinner ever
+ */
+ @-webkit-keyframes spin {
+    to {
+        -webkit-transform: rotate(1turn);
+    }
+}
+.cjs-loading-overlay .progress {
+    position: relative;
+    display: block;
+    width: 5em;
+    height: 5em;
+    font-size: 12px;
+    text-indent: 999em;
+    overflow: hidden;
+    -webkit-animation: spin 1s infinite steps(8);
+}
+
+.cjs-loading-overlay-full .progress {
+    margin: 100px auto 50px auto;
+}
+
+.cjs-loading-overlay-compact .progress {
+    display:inline-block;
+    vertical-align: middle;
+    margin: 5px;
+}
+
+.cjs-loading-overlay .small.progress {
+    font-size: 6px;
+}
+.cjs-loading-overlay .large.progress {
+    font-size: 24px;
+}
+.cjs-loading-overlay .progress:before, 
+.cjs-loading-overlay .progress:after, 
+.cjs-loading-overlay .progress > div:before, 
+.cjs-loading-overlay .progress > div:after {
+    content:'';
+    position: absolute;
+    top: 0;
+    left: 2.25em;
+    /* (container width - part width)/2  */
+    width: .5em;
+    height: 1.5em;
+    border-radius: .2em;
+    background: #eee;
+    box-shadow: 0 3.5em #eee;
+    /* container height - part height */
+    -webkit-transform-origin: 50% 2.5em;
+    /* container height / 2 */
+}
+.cjs-loading-overlay .progress:before {
+    background: #555;
+}
+.cjs-loading-overlay .progress:after {
+    -webkit-transform: rotate(-45deg);
+    background: #777;
+}
+.cjs-loading-overlay .progress > div:before {
+    -webkit-transform: rotate(-90deg);
+    background: #999;
+}
+.cjs-loading-overlay .progress > div:after {
+    -webkit-transform: rotate(-135deg);
+    background: #bbb;
 }
 
 /* Icons */
@@ -636,7 +842,8 @@ button.icon-only {
     z-index: 1000;
     -webkit-transition: opacity 0.3s ease-in-out;
 }
-.popover.active ~ .modal-overlay, .popup.active ~ .modal-overlay {
+
+.modal-overlay.active {
     visibility: visible;
     pointer-events: all;
     opacity: 0.4;
@@ -676,6 +883,72 @@ button.icon-only {
 .popover button:last-child {
     border: none;
 }
+
+.poparrow {
+width: 26px;
+height: 12px;
+position: absolute;
+left: 0px;
+top: 0;
+z-index: 100;
+overflow: hidden;
+}
+
+.up .poparrow {
+bottom: -12px;
+top:auto;
+}
+
+.down .poparrow {
+top:-12px;
+bottom: auto;
+}
+
+.left .poparrow {
+right: -12px;
+left:auto;
+width: 12px;
+height: 26px;
+}
+
+.right .poparrow {
+left:-12px;
+right: auto;
+width: 12px;
+height: 26px;
+}
+
+
+.poparrow:after {
+content: ' ';
+background: #fff;
+width: 26px;
+height: 26px;
+position: absolute;
+left: 0;
+top: 0;
+border-radius: 3px;
+-webkit-transform: rotate(45deg);
+}
+
+.popover.up .poparrow:after {
+top:-19px;
+}
+
+.popover.down .poparrow:after {
+top:5px;
+}
+
+.popover.left .poparrow:after {
+left:-19px;
+}
+
+.popover.right .poparrow:after {
+left:5px;
+}
+
+
+
 /* popup */
  .popup {
     position: absolute;
@@ -695,6 +968,155 @@ button.icon-only {
     position: absolute;
     -webkit-transform: translate(0, 0);
 }
+
+@media (max-width: 630px) {
+ .popup {
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    margin-left: 0;
+    margin-top: 0;
+    -webkit-transform: translate(0, 101%);
+}
+
+}
+
+
+/* sidepanel */
+
+ .sidepanel {
+    position: absolute;
+    display: none;
+    top:0;
+    bottom: 0;
+    width: 260px;
+    z-index: 1100;
+}
+
+
+/*
+
+.sidepanel.active {
+    display: block;
+    -webkit-transform: translate(0, 0);
+}
+*/
+
+.sidepanel .navbar {
+    background: #000;
+    border-bottom: 1px solid #333;
+    color: white;
+}
+
+
+.sidepanel .navbar h1{
+background-color: transparent;
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+margin: 0;
+text-align: center;
+font-size: 17px;
+line-height: 44px;
+font-weight: 500;
+z-index: -1;
+text-overflow: ellipsis;
+}
+
+.sidepanel .body {
+    background-color: #222;
+    color: white;   
+}
+
+.sidepanel .body h2 {
+color: white;
+}
+
+.sidepanel .body button {
+}
+
+.sidepanel .body button.menuitem {
+color: rgb(111, 111, 116);
+display: block;
+width: 260px;
+border: none;
+text-align: left;
+border-radius: 0;
+margin: 0;
+padding: 5px 15px;
+height: auto;
+border-bottom: 1px solid #aaa;
+border-top: 1px solid #aaa;
+}
+
+.sidepanel .body button.menuitem+button.menuitem {
+    border-top: none;
+}
+
+.sidepanel .body button.menuitem.selected {
+    color: #007aff;
+    background-color: transparent;
+}
+
+.sidepanel .body button.menutile {
+width: 100%;
+margin: 5px 0;
+box-sizing: border-box;
+border: none;
+float: left;
+height: 50px;
+font-size: 8pt;
+color: rgb(111, 111, 116);
+}
+
+.sidepanel .body button.half {
+    width: 50%;
+}
+.sidepanel .body button.third {
+    width: 33.3%;
+}
+.sidepanel .body button.quarter {
+    width: 25%;
+}
+
+
+
+.sidepanel .body button.menutile.selected {
+    background-color: transparent;
+    color: #007aff;
+}
+
+/*
+.chondric-page.haspushpanel .body,
+.chondric-page.haspushpanel .navbar,
+.chondric-page.haspushpanel .tabbar
+{
+    -webkit-transition: -webkit-transform 0.3s ease-in-out;
+}
+
+.chondric-page.pushedleft .body,
+.chondric-page.pushedleft .navbar,
+.chondric-page.pushedleft .tabbar
+{
+    -webkit-transform: translate(-261px, 0);
+}
+
+.chondric-page.pushedright .body,
+.chondric-page.pushedright .navbar,
+.chondric-page.pushedright .tabbar
+{
+    -webkit-transform: translate(261px, 0);
+}
+
+.chondric-page.haspushpanel .sidepanel .body,
+.chondric-page.haspushpanel .sidepanel .navbar,
+.chondric-page.haspushpanel .sidepanel .tabbar
+{
+    -webkit-transform: translate(0, 0);
+}
+*/
 
 .chondric-page.next.crossfade {
     pointer-events:none;
@@ -722,18 +1144,18 @@ button.icon-only {
 }
 
 
-.chondric-page.slideleft .page {
+.chondric-page.slideleft .body {
     -webkit-transition: -webkit-transform 0.3s ease-in-out;
 }
 
-.chondric-page.next.slideleft .page {
-    display: block;
-    -webkit-transform: translate(-100%, 0);
-}
-
-.chondric-page.prev.slideleft .page {
+.chondric-page.next.slideleft .body {
     display: block;
     -webkit-transform: translate(100%, 0);
+}
+
+.chondric-page.prev.slideleft .body {
+    display: block;
+    -webkit-transform: translate(-100%, 0);
 }
 
 
@@ -746,19 +1168,19 @@ button.icon-only {
 }
 
 
-.chondric-page.slideright .page {
+.chondric-page.slideright .body {
     -webkit-transition: -webkit-transform 0.3s ease-in-out;
 }
 
 
-.chondric-page.next.slideright .page {
-    display: block;
-    -webkit-transform: translate(100%, 0);
-}
-
-.chondric-page.prev.slideright .page {
+.chondric-page.next.slideright .body {
     display: block;
     -webkit-transform: translate(-100%, 0);
+}
+
+.chondric-page.prev.slideright .body {
+    display: block;
+    -webkit-transform: translate(100%, 0);
 }
 
 .chondric-page.slideright .navbar {

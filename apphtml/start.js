@@ -13,16 +13,16 @@ app.createViewTemplate({
         };
         $scope.testLoadStatus = {
             tasks: [loadTask1]
-        }
+        };
 
         function fakeLoad() {
             loadTask1.progressCurrent++;
             $scope.$apply();
             if (loadTask1.progressCurrent < 10) {
-                window.setTimeout(fakeLoad, 100)
+                window.setTimeout(fakeLoad, 100);
             }
         }
-        window.setTimeout(fakeLoad, 100)
+        window.setTimeout(fakeLoad, 100);
 
         app.setSharedUiComponentState($scope, "cjs-navigation-bar", true, true, {
             title: "Test Title 1",
@@ -40,24 +40,24 @@ app.createViewTemplate({
                     action: "action2()"
                 }]
             }],
-        })
+        });
 
         var rightPanelData = {
             templateUrl: "popuptemplate.html"
-        }
+        };
 
         app.setSharedUiComponentState($scope, "cjs-right-panel", false, true, rightPanelData);
 
 
-        $scope.showSharedPopup = function(lastTap) {
+        $scope.showSharedPopup = function() {
             app.setSharedUiComponentState($scope, "cjs-shared-popup", true, true, {
                 templateUrl: "popuptemplate.html"
             });
-        }
+        };
 
-        $scope.showRightPanel = function(lastTap) {
+        $scope.showRightPanel = function() {
             app.setSharedUiComponentState($scope, "cjs-right-panel", true, true, rightPanelData);
-        }
+        };
 
 
         $scope.popup = function(lastTap) {
@@ -70,20 +70,20 @@ app.createViewTemplate({
                     title: "Item 2",
                     action: "action2()"
                 }]
-            })
-        }
+            });
+        };
 
         $scope.readPopupResult = function(value) {
-            alert(value);
-        }
+            window.alert(value);
+        };
 
         $scope.action1 = function() {
-            alert("Action 1");
-        }
+            window.alert("Action 1");
+        };
 
         $scope.action2 = function() {
-            alert("Action 2");
-        }
+            window.alert("Action 2");
+        };
 
         $scope.swipeNav = {
             leftBorder: {
@@ -97,7 +97,7 @@ app.createViewTemplate({
                 panel: "navMenu",
                 transition: "coverRight"
             }*/
-        }
+        };
 
         $scope.exampleFunction = function() {
             $scope.exampleValue = '';
@@ -105,11 +105,11 @@ app.createViewTemplate({
     },
     controllers: {
         sharedPopupController: function($scope) {
-            $scope.valueFromPopupController = "Testing..."
+            $scope.valueFromPopupController = "Testing...";
             $scope.savePopupResults = function() {
                 $scope.hideModal();
-                $scope.handleAction("readPopupResult", $scope.valueFromPopupController)
-            }
+                $scope.handleAction("readPopupResult", $scope.valueFromPopupController);
+            };
         }
 
     }

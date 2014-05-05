@@ -1,6 +1,6 @@
 {
     "Procfile": "9f9cf10c2991738045960bcf201e4349379541af",
-    "apphost.js": "edda4ac020129944d31180ca5c445cd072483e26",
+    "apphost.js": "5034967d10eade25f20aa14ec197dcbd6c939daa",
     "package.json": "b4e7bb38026de53a21a4b517ae38fb7b845be0de",
     ".env": "e51ef4ef249400088b99f1cc9aa68f7b1cfcb3d9",
     ".gitignore": "8c9ccb989f17fdd68ae996eb758b7d5af868974e",
@@ -30,5 +30,9 @@
     "apphtml/customtemplate.html": "9ecd7a0ae3e8fac5c92bd0136f31e2f0ff258ad9",
     "apphtml/subfolder/subfolderpage.js": "b46474cbddafe10a9b3edf17938cf0bd0fd741c5",
     "apphtml/app.js": "68b6ece31a855cc908fd1cea1b6ce69f769e1e85",
-    "apphtml/db.js": "5721ab1e812417cdcb8fbb52290dea00bb76c579"
+    "apphtml/db.js": "5721ab1e812417cdcb8fbb52290dea00bb76c579",
+    ".jshintrc": "2d6461b75db074b34aa62d917e2d79687c70f0a1",
+    "apphtml\\.jshintrc": "292ce384f30610e93141eb79cf9a315171214a88",
+    "apphtml\\db.js": "53ce26901e8ca847a48e1ecf7483ccbe7e967f39",
+    "apphtml\\app.js": "f045ca6efe088941594e425a90a74db610c79ce6"
 }

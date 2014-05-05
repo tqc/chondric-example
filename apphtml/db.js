@@ -7,7 +7,7 @@ function ExampleDb() {
 
     } else {
         console.log("Using web db");
-        db = openDatabase("ExampleDb", "", "Example local database", 1000000);
+        db = window.openDatabase("ExampleDb", "", "Example local database", 1000000);
     }
 
     if (!db) {
@@ -30,19 +30,19 @@ function ExampleDb() {
 
     var sqlerror = this.sqlerror;
 
-/**************************************************************************************
-/* Get Items
-/**************************************************************************************/
- 
+    /**************************************************************************************
+     * Get Items
+     **************************************************************************************/
+
     this.getItems = function(callback) {
         var items = {};
         db.transaction(function(tx) {
             tx.executeSql("SELECT * FROM items", [], function(t, result) {
                 for (var i = 0; i < result.rows.length; i++) {
-                    var row = result.rows[i] || result.rows.item(i)
+                    var row = result.rows[i] || result.rows.item(i);
                     items[row.itemName] = JSON.parse(row.data);
                 }
-                if (callback != null) callback(items);
+                if (callback) callback(items);
             }, sqlerror);
         });
     };
