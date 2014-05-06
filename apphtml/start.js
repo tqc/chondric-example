@@ -3,7 +3,7 @@ app.createViewTemplate({
 
     route: "/start",
     controller: function($scope, sharedUi, loadStatus) {
-        loadStatus.init($scope, {
+        loadStatus = loadStatus.init($scope, {
             fakeLoad: {
                 title: "Loading Part 1",
                 progressTotal: 10

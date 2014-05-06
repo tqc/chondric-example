@@ -124,12 +124,15 @@ Chondric.App =
                 templateUrl: sc.templateUrl,
                 controller: sc.controller,
                 setState: sc.setState,
-                setStatePartial: sc.setStatePartial
+                setStatePartial: sc.setStatePartial,
+                updateSwipe: sc.updateSwipe,
+                endSwipe: sc.endSwipe
             };
         }
 
         app.registerSharedUiComponent = function(component) {
             app.sharedUiComponents[component.id] = component;
+            component.app = app;
         };
 
         app.controller = function($scope, $location) {
@@ -156,24 +159,38 @@ Chondric.App =
                 $scope[name] = null;
             };
 
-
-            $scope.setSharedUiComponentState = app.setSharedUiComponentState = function(routeScope, componentId, active, available, data) {
+            $scope.getSharedUiComponentState = app.getSharedUiComponentState = function(routeScope, componentId) {
                 app.scopesForRoutes[routeScope.rk] = routeScope;
+
                 var component = app.sharedUiComponents[componentId];
                 if (!component) {
                     throw new Error(
                         "Shared UI Component " + componentId + " not found"
                     );
                 }
+
                 var csfr = app.componentStatesForRoutes[routeScope.rk] = app.componentStatesForRoutes[routeScope.rk] || {};
-                csfr[componentId] = {
+                var cs = csfr[componentId] = csfr[componentId] || {
                     route: routeScope.rk,
-                    active: active,
-                    available: available,
-                    data: data
+                    active: false,
+                    available: false,
+                    data: {}
                 };
+
+                return cs;
+
+            };
+
+            $scope.setSharedUiComponentState = app.setSharedUiComponentState = function(routeScope, componentId, active, available, data) {
+                var cs = app.getSharedUiComponentState(routeScope, componentId);
+                // if parameters are undefined, the previous value will be used
+                if (active === true || active === false) cs.active = active;
+                if (available === true || available === false) cs.available = available;
+                if (data !== undefined) cs.data = data;
+
                 if ($scope.route == routeScope.rk) {
-                    component.setState(component, routeScope.rk, active, available, data);
+                    var component = app.sharedUiComponents[componentId];
+                    component.setState(component, routeScope.rk, cs.active, cs.available, cs.data);
                 }
 
             };
@@ -272,13 +289,14 @@ Chondric.App =
             };
 
             $scope.updateSwipe = function(swipeState, swipeNav, pageScope) {
-                if (!swipeState || !swipeNav) return;
-
+                if (!swipeState) return;
 
                 for (var k in app.sharedUiComponents) {
                     var component = app.sharedUiComponents[k];
                     if (component.updateSwipe) component.updateSwipe(component, swipeState);
                 }
+
+                if (!swipeNav) return;
 
                 // default handler covers left and right border swipe
                 for (var p in swipeState) {
@@ -305,13 +323,14 @@ Chondric.App =
             };
 
             $scope.endSwipe = function(swipeState, swipeNav, pageScope) {
-                if (!swipeState || !swipeNav) return;
+                if (!swipeState) return;
 
                 for (var k in app.sharedUiComponents) {
                     var component = app.sharedUiComponents[k];
                     if (component.endSwipe) component.endSwipe(component, swipeState);
                 }
 
+                if (!swipeNav) return;
 
                 for (var p in swipeState) {
                     if (swipeState[p] && swipeNav[p]) {
@@ -389,13 +408,13 @@ Chondric.App =
                         route: transition.from,
                         active: false,
                         available: false,
-                        data: null
+                        data: {}
                     };
                     var toState = toStates[k] || {
                         route: transition.to,
                         active: false,
                         available: false,
-                        data: null
+                        data: {}
                     };
                     if (component.setStatePartial) {
                         component.setStatePartial(component, fromState, toState, transition.progress);
@@ -479,16 +498,17 @@ Chondric.App =
 
 
         function initData(callback) {
-            console.log("getting database");
-
             app.db = settings.getDatabase();
             if (!app.db) {
                 callback();
             } else {
-                app.db.updateDatabase(function() {
-
+                if (app.db.updateDatabase) {
+                    app.db.updateDatabase(function() {
+                        callback();
+                    });
+                } else {
                     callback();
-                });
+                }
             }
         }
 
@@ -588,7 +608,7 @@ Chondric.App =
                     // for now just check if height matches the full screen
                     var w = $(window).width();
                     var h = $(window).height();
-                    console.log(w + "," + h);
+                    console.log("Size changed: " + w + "x" + h);
                     if (h == 1024 || h == 768 || h == 320 || h == 568 || h == 480) {
                         $(".viewport").addClass("hasstatusbar");
                     } else {
@@ -682,6 +702,57 @@ Chondric.App =
 
         return app;
 };
+
+Chondric.factory('sharedUi', function() {
+    // A simplified interface for the shared ui components
+
+    return {
+        init: function($scope, componentAliases) {
+            var service = {};
+            var app = $scope.app;
+            service.route = $scope.rk;
+            $scope.sharedUi = service;
+            service.addComponent = function(alias, componentKey) {
+                service[alias] = {
+                    setState: function(active, available, data) {
+                        app.setSharedUiComponentState($scope, componentKey, active, available, data);
+                    },
+                    enable: function(data) {
+                        app.setSharedUiComponentState($scope, componentKey, undefined, true, data);
+                    },
+                    disable: function() {
+                        app.setSharedUiComponentState($scope, componentKey, false, false, undefined);
+                    },
+                    show: function(data) {
+                        app.setSharedUiComponentState($scope, componentKey, true, true, data);
+                    },
+                    hide: function(disable) {
+                        app.setSharedUiComponentState($scope, componentKey, false, !disable, undefined);
+                    },
+                    replaceData: function(data) {
+                        app.setSharedUiComponentState($scope, componentKey, undefined, undefined, data);
+                    },
+                    extendData: function(update) {
+                        var state = app.getSharedUiComponentState($scope, componentKey);
+                        var newData = $.extend(state.data || {}, update);
+                        app.setSharedUiComponentState($scope, componentKey, state.active, state.available, newData);
+                    },
+                    updateState: function(fn) {
+                        var state = app.getSharedUiComponentState($scope, componentKey);
+                        fn(state);
+                        app.setSharedUiComponentState($scope, componentKey, state.active, state.available, state.data);
+                    },
+
+                };
+            };
+
+            for (var alias in componentAliases) {
+                service.addComponent(alias, componentAliases[alias]);
+            }
+            return service;
+        }
+    };
+});
 angular.module('chondric').run(['$templateCache', function($templateCache) {
   'use strict';
 
@@ -720,8 +791,9 @@ angular.module('chondric').run(['$templateCache', function($templateCache) {
     "    <div ng-show=\"!error\" class=\"progress large\">\n" +
     "        <div></div>\n" +
     "    </div>\n" +
-    "    <div class=\"message\" ng-show=\"!error\">{{message || \"Loading\"}}</div>\n" +
-    "    <div class=\"error\" ng-show=\"error\">{{error}}</div>\n" +
+    "    <div class=\"title\" ng-show=\"title && !error\">{{title}}</div>\n" +
+    "     <div class=\"message\" ng-show=\"!error\">{{message || \"Loading\"}}</div>\n" +
+    "   <div class=\"error\" ng-show=\"error\">{{error}}</div>\n" +
     "    <div class=\"buttons\">\n" +
     "        <button ng-show=\"retry && error\" ng-tap=\"retry()\">Retry</button>\n" +
     "        <button ng-show=\"cancel\" ng-tap=\"cancel()\">Cancel</button>\n" +
@@ -977,9 +1049,9 @@ Chondric.directive('cjsLoadingOverlay', function($templateCache, $compile) {
         link: function(scope, element, attrs) {
             var contentElement;
             if (element.children().length == 1) {
-                contentElement = element.first();
+                contentElement = element.children().first();
             } else {
-                contentElement = element.wrapInner("<div/>").first();
+                contentElement = element.wrapInner("<div/>").children().first();
             }
 
 
@@ -995,37 +1067,22 @@ Chondric.directive('cjsLoadingOverlay', function($templateCache, $compile) {
 
             $compile(overlay)(scope);
 
-            scope.$watch(attrs.cjsLoadingOverlay, function(status) {
-                if (!status) return;
-                var currentTask = null;
-                for (var i = 0; i < status.tasks.length; i++) {
-                    var task = status.tasks[i];
-                    if (task.error) {
-                        currentTask = task;
-                        break;
-                    }
-                    if (task.progressCurrent < task.progressTotal && (!currentTask || task.progressTotal > currentTask.progressTotal)) {
-                        currentTask = task;
-                    }
-                }
-
-                scope.currentTask = currentTask;
-                if (!currentTask) {
-                    // finished
+            scope.loadStatus.onUpdate(scope.$eval(attrs.cjsLoadingOverlay), function(taskGroup) {
+                scope.taskGroup = taskGroup;
+                scope.currentTask = taskGroup.currentTask;
+                if (taskGroup.completed) {
+                    // finished                    
                     scope.message = "finished";
                     contentElement.addClass("ui-show").removeClass("ui-hide");
                     overlay.addClass("ui-hide").removeClass("ui-show");
                 } else {
                     contentElement.addClass("ui-hide").removeClass("ui-show");
                     overlay.addClass("ui-show").removeClass("ui-hide");
-                    scope.error = currentTask.error;
-                    scope.message = currentTask.progressCurrent + " / " + currentTask.progressTotal;
+                    scope.title = taskGroup.title;
+                    scope.error = taskGroup.error;
+                    scope.message = taskGroup.message;
                 }
-
-
-
-            }, true);
-
+            });
         }
     };
 });
@@ -1033,26 +1090,134 @@ Chondric.directive('cjsLoadingOverlay', function($templateCache, $compile) {
 Chondric.directive('cjsShowAfterLoad', function() {
     return {
         link: function(scope, element, attrs) {
-            scope.$watch(attrs.cjsShowAfterLoad, function(status) {
-                if (!status) return;
-                var currentTask = null;
-                for (var i = 0; i < status.tasks.length; i++) {
-                    var task = status.tasks[i];
-                    if (task.error) {
-                        currentTask = task;
-                        break;
-                    }
-                    if (task.progressCurrent < task.progressTotal && (!currentTask || task.progressTotal > currentTask.progressTotal)) {
-                        currentTask = task;
-                    }
-                }
 
-                if (!currentTask) {
+            scope.loadStatus.onUpdate(scope.$eval(attrs.cjsShowAfterLoad), function(taskGroup) {
+                if (taskGroup.completed) {
                     element.addClass("ui-show").removeClass("ui-hide");
                 } else {
                     element.addClass("ui-hide").removeClass("ui-show");
                 }
-            }, true);
+            });
+        }
+    };
+});
+
+
+Chondric.factory('loadStatus', function() {
+    // simple UI to track loading status
+    return {
+        init: function($scope, tasks) {
+            var service = {};
+            var existing = $scope.loadStatus;
+            if (existing) {
+                $.extend(service, existing);
+                service.allTasks = [].concat(existing.allTasks);
+
+            } else {
+                service.allTasks = [];
+            }
+            $scope.loadStatus = service;
+
+            service.registerTask = function(key, taskOptions) {
+                var task = {
+                    key: key,
+                    title: "Untitled Task",
+                    progressCurrent: 0,
+                    progressTotal: 1,
+                    active: false,
+                    message: "Message Here...",
+                    error: null,
+                    start: function() {
+                        task.active = true;
+                    },
+                    finish: function() {
+                        task.progressCurrent = task.progressTotal;
+                        task.completed = true;
+                        task.active = false;
+                    },
+                    fail: function(message) {
+                        task.active = false;
+                        task.error = message;
+                    },
+                    progress: function(progress, total) {
+                        task.active = true;
+                        task.progressCurrent = progress;
+                        if (total !== undefined) task.progressTotal = total;
+                    }
+                };
+                $.extend(task, taskOptions);
+                service[key] = task;
+                service.allTasks.push(task);
+            };
+
+            service.onUpdate = function(tasksOrKeys, fn) {
+                // if no task array specified, include all tasks in the current scope
+                tasksOrKeys = tasksOrKeys || service.allTasks;
+                var watchedKeys = [];
+                for (var i = 0; i < tasksOrKeys.length; i++) {
+                    var t = tasksOrKeys[i];
+                    if (typeof t == "string") watchedKeys.push(t);
+                    else if (t.key) watchedKeys.push(t.key);
+                }
+                if (watchedKeys.length === 0) return fn({
+                    tasks: [],
+                    completed: true
+                });
+
+                $scope.$watch("[loadStatus." + watchedKeys.join(",loadStatus.") + "]", function(tasks) {
+                    // check all tasks, see if there are any outstanding
+                    if (!tasks) return;
+
+                    var result = {
+                        tasks: tasks
+                    };
+
+                    result.currentTask = undefined;
+                    for (var i = 0; i < tasks.length; i++) {
+                        var task = tasks[i];
+                        if (task.error) {
+                            result.currentTask = task;
+                            break;
+                        }
+
+                        if (task.active) {
+                            result.currentTask = task;
+                            break;
+                        }
+                        if (task.progressCurrent < task.progressTotal && (!result.currentTask || task.progressTotal > result.currentTask.progressTotal)) {
+                            result.currentTask = task;
+                            break;
+                        }
+                    }
+                    if (!result.currentTask) {
+                        // finished                    
+                        result.message = "finished";
+                        result.completed = true;
+                    } else {
+                        result.completed = false;
+                        result.title = result.currentTask.title;
+                        result.error = result.currentTask.error;
+                        result.message = result.currentTask.message || (result.currentTask.progressCurrent + " / " + result.currentTask.progressTotal);
+                    }
+
+                    fn(result);
+
+                }, true);
+
+            };
+
+            service.after = function(tasksOrKeys, fn) {
+                service.onUpdate(tasksOrKeys, function(taskGroup) {
+                    if (taskGroup.completed) return fn();
+                });
+            };
+
+            if (tasks) {
+                for (var tk in tasks) {
+                    service.registerTask(tk, tasks[tk]);
+                }
+            }
+            return service;
         }
     };
 });
@@ -1820,7 +1985,13 @@ Chondric.directive('chondricViewport', function($compile) {
             //            console.log("viewport directive");
             var rk = scope.$eval("rk");
             var rv = scope.$eval("rv");
-            if (rv) scope.pageParams = rv.params || {};
+            if (rv) {
+                scope.pageParams = rv.params || {};
+                // add route parameters directly to the scope
+                for (var k in rv.params) {
+                    scope[k] = rv.params[k];
+                }
+            }
             if (rk) scope.pageRoute = rk;
 
             if (!rk && attrs["chondric-viewport"] == "1") return;
@@ -1999,19 +2170,26 @@ Chondric.registerSharedUiComponent({
         var self = $scope.componentDefinition;
         self.scope = $scope;
         self.defaultController = function() {};
+
         $scope.hideModal = function() {
-            self.popuptrigger = null;
             var routeScope = self.app.scopesForRoutes[self.route];
             // need to reset this so the popup doesnt reopen if the page is reactivated.
-            self.app.setSharedUiComponentState(routeScope, "cjs-shared-popup", false, true, null);
+            self.app.setSharedUiComponentState(routeScope, "cjs-shared-popup", false, true, self.data);
         };
-        $scope.handleAction = function(funcName, params) {
-            self.popuptrigger = null;
+        $scope.runOnMainScope = function(funcName, params) {
             var routeScope = self.app.scopesForRoutes[self.route];
             if (routeScope) {
-                routeScope.$eval(funcName)(params);
+                routeScope.$eval(funcName).apply(undefined, params);
             }
         };
+        $scope.runOnMainScopeAndClose = function(funcName, params) {
+            $scope.hideModal();
+            var routeScope = self.app.scopesForRoutes[self.route];
+            if (routeScope) {
+                routeScope.$eval(funcName).apply(undefined, params);
+            }
+        };
+
     },
     setState: function(self, route, active, available, data) {
         self.data = data;
@@ -2037,13 +2215,20 @@ Chondric.registerSharedUiComponent({
             // need to reset this so the popup doesnt reopen if the page is reactivated.
             self.app.setSharedUiComponentState(routeScope, "cjs-right-panel", false, true, self.data);
         };
-        $scope.handleAction = function(funcName, params) {
-            self.popuptrigger = null;
+        $scope.runOnMainScope = function(funcName, params) {
             var routeScope = self.app.scopesForRoutes[self.route];
             if (routeScope) {
-                routeScope.$eval(funcName)(params);
+                routeScope.$eval(funcName).apply(undefined, params);
             }
         };
+        $scope.runOnMainScopeAndClose = function(funcName, params) {
+            $scope.hideModal();
+            var routeScope = self.app.scopesForRoutes[self.route];
+            if (routeScope) {
+                routeScope.$eval(funcName).apply(undefined, params);
+            }
+        };
+
     },
     setState: function(self, route, active, available, data) {
         self.data = data;
@@ -2112,11 +2297,17 @@ Chondric.registerSharedUiComponent({
             // need to reset this so the popup doesnt reopen if the page is reactivated.
             self.app.setSharedUiComponentState(routeScope, "cjs-left-panel", false, true, self.data);
         };
-        $scope.handleAction = function(funcName, params) {
-            self.popuptrigger = null;
+        $scope.runOnMainScope = function(funcName, params) {
             var routeScope = self.app.scopesForRoutes[self.route];
             if (routeScope) {
-                routeScope.$eval(funcName)(params);
+                routeScope.$eval(funcName).apply(undefined, params);
+            }
+        };
+        $scope.runOnMainScopeAndClose = function(funcName, params) {
+            $scope.hideModal();
+            var routeScope = self.app.scopesForRoutes[self.route];
+            if (routeScope) {
+                routeScope.$eval(funcName).apply(undefined, params);
             }
         };
     },
