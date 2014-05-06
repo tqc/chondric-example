@@ -1,5 +1,6 @@
 "use strict";
 var chondric = require("chondric-tools");
+
 require("envloader").load();
 
 var app = chondric.hostApp({

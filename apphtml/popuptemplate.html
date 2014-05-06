@@ -4,7 +4,7 @@
         <h1>
             Shared Popup...
         </h1>
-        <button href="" ng-tap="savePopupResults();hideModal();" class="right">Done</button>
+        <button href="" ng-tap="runOnMainScopeAndClose('readPopupResult', [valueFromPopupController])" class="right">Done</button>
     </div>
 <div class="body">
 Popup content here.

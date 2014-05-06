@@ -31,6 +31,9 @@ var app = new Chondric.App({
     customInit: function(callback) {
         app.registerForNotifications();
         callback();
+    },
+    appCtrl: function($scope) {
+        // optional custom component of the app level controller
     }
 });
 

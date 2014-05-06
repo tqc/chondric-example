@@ -2,8 +2,16 @@ app.createViewTemplate({
     templateId: "start",
 
     route: "/start",
-    controller: function($scope) {
-        $scope.exampleValue = "Example";
+    controller: function($scope, sharedUi) {
+
+
+        sharedUi.init($scope, {
+            header: "cjs-navigation-bar",
+            actionSheet: "cjs-action-sheet",
+            rightPanel: "cjs-right-panel",
+            popup: "cjs-shared-popup"
+        });
+
         var loadTask1 = {
             title: "Loading Part 1",
             progressCurrent: 0,
@@ -24,7 +32,7 @@ app.createViewTemplate({
         }
         window.setTimeout(fakeLoad, 100);
 
-        app.setSharedUiComponentState($scope, "cjs-navigation-bar", true, true, {
+        sharedUi.header.show({
             title: "Test Title 1",
             leftButtons: [{
                 title: "Left",
@@ -42,26 +50,21 @@ app.createViewTemplate({
             }],
         });
 
-        var rightPanelData = {
+        sharedUi.rightPanel.enable({
             templateUrl: "popuptemplate.html"
-        };
-
-        app.setSharedUiComponentState($scope, "cjs-right-panel", false, true, rightPanelData);
+        });
 
 
         $scope.showSharedPopup = function() {
-            app.setSharedUiComponentState($scope, "cjs-shared-popup", true, true, {
+            sharedUi.popup.show({
                 templateUrl: "popuptemplate.html"
             });
         };
 
-        $scope.showRightPanel = function() {
-            app.setSharedUiComponentState($scope, "cjs-right-panel", true, true, rightPanelData);
-        };
 
 
         $scope.popup = function(lastTap) {
-            app.setSharedUiComponentState($scope, "cjs-action-sheet", true, true, {
+            sharedUi.actionSheet.show({
                 element: lastTap.element,
                 items: [{
                     title: "Item 1",
@@ -91,26 +94,12 @@ app.createViewTemplate({
                 route: "/subfolderpage",
                 transition: "slideright"
             }
-            /*,
-            rightBorder: {
-                type: "sidePanel",
-                panel: "navMenu",
-                transition: "coverRight"
-            }*/
         };
 
-        $scope.exampleFunction = function() {
-            $scope.exampleValue = '';
-        };
     },
     controllers: {
         sharedPopupController: function($scope) {
             $scope.valueFromPopupController = "Testing...";
-            $scope.savePopupResults = function() {
-                $scope.hideModal();
-                $scope.handleAction("readPopupResult", $scope.valueFromPopupController);
-            };
         }
-
     }
 });
