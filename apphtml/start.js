@@ -2,35 +2,39 @@ app.createViewTemplate({
     templateId: "start",
 
     route: "/start",
-    controller: function($scope, sharedUi) {
+    controller: function($scope, sharedUi, loadStatus) {
 
-
-        sharedUi.init($scope, {
+        sharedUi = sharedUi.init($scope, {
             header: "cjs-navigation-bar",
             actionSheet: "cjs-action-sheet",
             rightPanel: "cjs-right-panel",
             popup: "cjs-shared-popup"
         });
 
-        var loadTask1 = {
-            title: "Loading Part 1",
-            progressCurrent: 0,
-            progressTotal: 10,
-            message: "Message Here...",
-            error: null
-        };
-        $scope.testLoadStatus = {
-            tasks: [loadTask1]
-        };
+        loadStatus = loadStatus.init($scope, {
+            fakeLoad: {
+                title: "Loading Part 1",
+                progressTotal: 10
+            }
+        });
+
+        loadStatus.fakeLoad.start();
+        var i = 0;
 
         function fakeLoad() {
-            loadTask1.progressCurrent++;
-            $scope.$apply();
-            if (loadTask1.progressCurrent < 10) {
+            loadStatus.fakeLoad.progress(i++);
+            if (i <= 10) {
                 window.setTimeout(fakeLoad, 100);
+            } else {
+                loadStatus.fakeLoad.finish();
             }
+            $scope.$apply();
         }
         window.setTimeout(fakeLoad, 100);
+
+        loadStatus.after([loadStatus.fakeLoad], function() {
+            console.log("load finished");
+        });
 
         sharedUi.header.show({
             title: "Test Title 1",
