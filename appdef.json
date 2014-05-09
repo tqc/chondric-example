@@ -38,6 +38,9 @@
         "title": "Scriptless Content Page",
         "pageTemplate": "templates/pagetemplate2.html",
         "pageScriptTemplate": "templates/pagetemplate2.js"
+    }, {
+        "id": "jsontemplate",
+        "title": "JSON template"
     }],
     "pageTemplate": "templates/pagetemplate.html",
     "pageScriptTemplate": "templates/pagetemplate.js"

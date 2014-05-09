@@ -8,6 +8,7 @@ app.createViewTemplate({
             header: "cjs-navigation-bar",
             actionSheet: "cjs-action-sheet",
             rightPanel: "cjs-right-panel",
+            leftPanel: "cjs-left-panel",
             popup: "cjs-shared-popup"
         });
 
@@ -58,6 +59,9 @@ app.createViewTemplate({
             templateUrl: "popuptemplate.html"
         });
 
+        sharedUi.leftPanel.enable({
+            templateUrl: "popuptemplate.html"
+        });
 
         $scope.showSharedPopup = function() {
             sharedUi.popup.show({

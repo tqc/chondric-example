@@ -34,5 +34,7 @@
     ".jshintrc": "2d6461b75db074b34aa62d917e2d79687c70f0a1",
     "apphtml\\.jshintrc": "292ce384f30610e93141eb79cf9a315171214a88",
     "apphtml\\db.js": "53ce26901e8ca847a48e1ecf7483ccbe7e967f39",
-    "apphtml\\app.js": "c9f52196e127e6845bbe7dbce1bc9f682996b752"
+    "apphtml\\app.js": "c9f52196e127e6845bbe7dbce1bc9f682996b752",
+    "apphtml\\jsontemplate.js": "cf97be6f40c0eab473054ac958ee67974a3284f7",
+    "apphtml\\jsontemplate.html": "2de78f12749264ee4bf4baff31686d257d9bf2db"
 }
