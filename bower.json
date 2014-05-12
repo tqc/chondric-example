@@ -1,12 +1,15 @@
 {
-    "name": "Chondric Example App",
-    "version": "0.0.1",
-    "dependencies": {
-        "angular": "*",
-        "angular-sanitize": "*",
-        "angular-ui-utils": "*",
-        "angular-ui-bootstrap": "*",
-        "pure": "*",
-        "jquery": "1.11.0"
-    }
+  "name": "Chondric Example App",
+  "version": "0.0.1",
+  "dependencies": {
+    "angular": "*",
+    "angular-sanitize": "*",
+    "angular-ui-utils": "*",
+    "angular-ui-bootstrap": "*",
+    "pure": "*",
+    "jquery": "1.11.0",
+    "angular-md": "~1.0.0",
+    "marked": "~0.3.2",
+    "highlightjs": "~8.0.0"
+  }
 }

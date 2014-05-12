@@ -1,7 +1,11 @@
+/* jshint browser: true, strict:false, unused:false */
+/* global Chondric: true */
+/* global app: true */
+
 var app = new Chondric.App({
     name: "Chondric Example App",
     mightBePhoneGap: true,
-    angularModules: ["ui.utils"],
+    angularModules: ["ui.utils", "yaru22.md"],
     firstPageTemplate: "/start",
     getDatabase: function() {
         // optionally return a database that will be assigned to app.db

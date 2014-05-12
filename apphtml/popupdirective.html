@@ -1,0 +1,37 @@
+<div class="body">
+
+    <h2>Demo</h2>
+
+    <div class="contentblock">
+        <p>
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+        <button class="fullwidth" ng-tap="showModal('popup2', 'value')">Button {{popup2}}</button>
+
+    </div>
+
+    <h2>Documentation</h2>
+    <div class="doc">
+        <md ng-include="'docs/popupdirective.md'"></md>
+    </div>
+</div>
+
+
+
+<div class="popup2" cjs-popup="popup2">
+    <div class="navbar">
+        <h1>
+            Popup
+        </h1>
+        <button href="" ng-tap="hideModal('popup2')" class="right">Done</button>
+    </div>
+
+    <div class="body">
+
+        <h2>Left Section</h2>
+        <div class="contentblock">
+            This is local popup 2 {{popup2}}
+        </div>
+        <button ng-tap="hideModal('popup2')">Button {{popup2}}</button>
+    </div>
+</div>

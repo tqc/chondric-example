@@ -13,35 +13,10 @@
 
     <h2>Left Section</h2>
     
-    <div class="contentblock" cjs-loading-overlay="[loadStatus.fakeLoad]" style="position: relative;" overlay-type="compact">
-        <p>{{testLoadStatus.tasks[0].progressCurrent}}</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        </p>
-    </div>
-
     <div class="contentblock">
         <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
         </p>
     </div>
-
-    <div class="contentblock" cjs-show-after-load="['fakeLoad']">
-        <p>{{testLoadStatus.tasks[0].progressCurrent}}</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        </p>
-    </div>
-
-    <button ng-tap="popup(lastTap)">Popover menu - new format</button>
-    <button ng-tap="showModal('popup1', lastTap)">Popover</button>
-    <button ng-tap="showModal('popup1', lastTap)">Popover</button>
-
-    <button class="fullwidth" ng-tap="showSharedPopup()">Shared Popup</button>
-
-    <button class="fullwidth" ng-tap="showModal('popup2', 'value')">Button {{popup2}}</button>
-
-
-    <button ng-tap="showModal('navMenu', { progress: 1 })">Right Menu</button>
-    <button ng-tap="sharedUi.leftPanel.show()">Shared Left Menu</button>
-    <button ng-tap="sharedUi.rightPanel.show()">Shared Right Menu</button>
 
 
     <div>
@@ -66,59 +41,32 @@
         </div>
     </div>
 
-
-</div>
-
-<div class="popup1" cjs-popover="popup1">
-    <div class="poparrow"></div>
-    <button ng-tap="hideModal('popup1')">Button {{popup1.x}}</button>
-    <button ng-tap="hideModal('popup1')">Button {{popup1.y}}</button>
-    <button ng-tap="hideModal('popup1')">Button {{popup1.x}}</button>
-</div>
-
-<div class="popup2" cjs-popup="popup2">
-    <div class="navbar">
-        <h1>
-            Popup
-        </h1>
-        <button href="" ng-tap="hideModal('popup2')" class="right">Done</button>
-    </div>
-
-    <div class="body">
-
-        <h2>Left Section</h2>
-        <div class="contentblock">
-            This is local popup 2 {{popup2}}
-        </div>
-        <button ng-tap="hideModal('popup2')">Button {{popup2}}</button>
-    </div>
-</div>
-
-<div class="sidepanel" cjs-sidepanel="navMenu">
-    <div class="navbar">
-        <h1>Menu</h1>
-    </div>
-    <div class="body">
-
 <h2>Section</h2>
-    <button class="menutile third" ng-tap="hideModal('navMenu')">Button</button>
-    <button class="menutile third" ng-tap="hideModal('navMenu')">Button</button>
-    <button class="menutile third" ng-tap="hideModal('navMenu')">Button</button>
-    <button class="menutile quarter" ng-tap="hideModal('navMenu')">Button</button>
-    <button class="menutile quarter" ng-tap="hideModal('navMenu')">Button</button>
-    <button class="menutile quarter" ng-tap="hideModal('navMenu')">Button</button>
-    <button class="menutile quarter" ng-tap="hideModal('navMenu')">Button</button>
-<div class="clear"></div>
+    <button class="fullwidth" ng-tap="changePage('/customtemplate')">Custom Templates</button>
+    <button class="fullwidth" ng-tap="changePage('/jsontemplate')">JSON template</button>
+    <button class="fullwidth" ng-tap="changePage('/loadstatus')">Load Status</button>
+    <button class="fullwidth" ng-tap="changePage('/routing')">Nested Routing</button>
+    <button class="fullwidth" ng-tap="changePage('/cordova')">Cordova / Phonegap Integration</button>
+    <button class="fullwidth" ng-tap="changePage('/actionsheet')">Action Sheet</button>
+    <button class="fullwidth" ng-tap="changePage('/sidepanels')">Side Panels</button>
+    <button class="fullwidth" ng-tap="changePage('/sharedpopup')">Shared Popup</button>
+    <button class="fullwidth" ng-tap="changePage('/navbar')">Navigation Bar</button>
+    <button class="fullwidth" ng-tap="changePage('/shareduicomponents')">Shared UI Components</button>
+    <button class="fullwidth" ng-tap="changePage('/popoverdirective')">Popover directive</button>
+    <button class="fullwidth" ng-tap="changePage('/popupdirective')">Popup Directive</button>
+    <button class="fullwidth" ng-tap="changePage('/sidepaneldirective')">Side Panel Directive</button>
+    <button class="fullwidth" ng-tap="changePage('/tap')">Tap directive</button>
+    <button class="fullwidth" ng-tap="changePage('/swiping')">Swiping</button>
+    <button class="fullwidth" ng-tap="changePage('/previewapp')">Preview</button>
+    <button class="fullwidth" ng-tap="changePage('/apphost')">App Host</button>
+    <button class="fullwidth" ng-tap="changePage('/appgeneration')">App Generation</button>
+    <button class="fullwidth" ng-tap="changePage('/transitions')">Transitions</button>
+    <button class="fullwidth" ng-tap="changePage('/appoptions')">App Options</button>
 
-<h2>Another Section</h2>
-
-    <button class="menuitem" ng-tap="hideModal('navMenu')">Button</button>
-    <button class="menuitem" ng-tap="hideModal('navMenu')">Button</button>
-    <button class="menuitem" ng-tap="hideModal('navMenu')">Button</button>
-    <button class="menuitem" ng-tap="hideModal('navMenu')">Button</button>
-
-
-    </div>
+<div class="doc">
+    <md ng-include="'docs/start.md'"></md>
 </div>
 
-<div class="modal-overlay"></div>
+
+</div>
+

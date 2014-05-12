@@ -31,16 +31,70 @@
         "id": "modalpage1",
         "title": "Modal Page 1"
     }, {
-        "id": "modalpage2",
-        "title": "Modal Page 2"
+        "id": "",
+        "title": ""
     }, {
         "id": "customtemplate",
-        "title": "Scriptless Content Page",
+        "title": "Custom Templates",
         "pageTemplate": "templates/pagetemplate2.html",
         "pageScriptTemplate": "templates/pagetemplate2.js"
     }, {
         "id": "jsontemplate",
         "title": "JSON template"
+    }, {
+        "id": "loadstatus",
+        "title": "Load Status"
+    }, {
+        "id": "routing",
+        "title": "Nested Routing"
+    }, {
+        "id": "cordova",
+        "title": "Cordova / Phonegap Integration"
+    }, {
+        "id": "actionsheet",
+        "title": "Action Sheet"
+    }, {
+        "id": "sidepanels",
+        "title": "Side Panels"
+    }, {
+        "id": "sharedpopup",
+        "title": "Shared Popup"
+    }, {
+        "id": "sharednavbar",
+        "title": "Navigation Bar"
+    }, {
+        "id": "shareduicomponents",
+        "title": "Shared UI Components"
+    }, {
+        "id": "popoverdirective",
+        "title": "Popover directive"
+    }, {
+        "id": "popupdirective",
+        "title": "Popup Directive"
+    }, {
+        "id": "sidepaneldirective",
+        "title": "Side Panel Directive"
+    }, {
+        "id": "tap",
+        "title": "Tap directive"
+    }, {
+        "id": "swiping",
+        "title": "Swiping"
+    }, {
+        "id": "previewapp",
+        "title": "Preview"
+    }, {
+        "id": "apphost",
+        "title": "App Host"
+    }, {
+        "id": "appgeneration",
+        "title": "App Generation"
+    }, {
+        "id": "transitions",
+        "title": "Transitions"
+    }, {
+        "id": "appoptions",
+        "title": "App Options"
     }],
     "pageTemplate": "templates/pagetemplate.html",
     "pageScriptTemplate": "templates/pagetemplate.js"
