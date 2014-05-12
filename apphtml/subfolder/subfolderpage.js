@@ -13,7 +13,7 @@ app.createViewTemplate({
                 title: "Right",
                 action: "changePage('/start', 'slideright')"
             }],
-        })
+        });
         $scope.exampleValue = "Example";
 
         $scope.exampleFunction = function() {
