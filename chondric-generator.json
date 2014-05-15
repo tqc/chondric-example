@@ -76,5 +76,7 @@
     "apphtml\\transitions.js": "c8142ae2f0d985c330fb894d70ba4a667d3e0c9a",
     "apphtml\\transitions.html": "5e7507f45ef5be49c580c0010a5991ded958daa8",
     "apphtml\\appoptions.js": "0bea88725ee777a0873621ddecfa398fa19f0144",
-    "apphtml\\appoptions.html": "7cc0f87e7ba425454e1072127e3c96f40e3d40f4"
+    "apphtml\\appoptions.html": "7cc0f87e7ba425454e1072127e3c96f40e3d40f4",
+    "apphtml\\tabfooter.js": "fdfa3260cb32bda73a5fefffd5ac2c22fbe3f3dd",
+    "apphtml\\tabfooter.html": "4bcf2c34588ee619fb51cdf3497a7e71712d7b5b"
 }

@@ -31,9 +31,6 @@
         "id": "modalpage1",
         "title": "Modal Page 1"
     }, {
-        "id": "",
-        "title": ""
-    }, {
         "id": "customtemplate",
         "title": "Custom Templates",
         "pageTemplate": "templates/pagetemplate2.html",
@@ -62,6 +59,9 @@
     }, {
         "id": "sharednavbar",
         "title": "Navigation Bar"
+    }, {
+        "id": "tabfooter",
+        "title": "Tab Footer"
     }, {
         "id": "shareduicomponents",
         "title": "Shared UI Components"
