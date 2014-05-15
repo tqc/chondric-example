@@ -1,0 +1,15 @@
+{
+    "title": "Chondric Example",
+    "projectName": "ChondricExample",
+    "cordovaFolder": "../cordova",
+    "webPath": "apphtml",
+    "platforms": [
+        "ios"
+    ],
+    "plugins": [],
+    "targets": {
+        "default": {
+            "appId": "com.orangeguava.chondric"
+        }
+    }
+}
