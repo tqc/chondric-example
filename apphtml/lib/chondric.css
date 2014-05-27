@@ -212,7 +212,7 @@ body.debugmode::after {
     text-align: center;
     display: inline-block;
     border-radius: 5px;
-    line-height: 27px;
+    line-height: 2em;
     padding: 0 10px;
     height: 29px;
     white-space: nowrap;
@@ -260,8 +260,9 @@ button.icon-only {
 }
 
 .hasstatusbar .navbar {
-    top:20px;
+    padding-top:20px;
 }
+
 .navbar>.v1,.navbar>.v2 {
      position: absolute;
     top:0;
@@ -269,6 +270,11 @@ button.icon-only {
     right:0;
     bottom: 0;
 }
+
+.hasstatusbar .navbar>.v1,.hasstatusbar .navbar>.v2 {
+    top:20px;
+}
+
 
 .navbar.nobg {
     background-color: transparent;
@@ -295,7 +301,7 @@ button.icon-only {
 }
 .navbar h1 {
     position: absolute;
-    top:0;
+    bottom:0;
     left: 33%;
     right:33%;
     margin: 0;
@@ -358,6 +364,7 @@ background-color: transparent;
     text-align: center;
     z-index: 10;
     background-color: #f7f7f8;
+    background-color: rgba(248, 248, 248, 0.9);
     border-top: 1px solid #c4c4c4;
     padding-top: 10px;
 }
@@ -414,11 +421,14 @@ background-color: transparent;
     padding-top:20px;
 }
 
-.uses-cjs-navigation-bar .body {
+.uses-cjs-navigation-bar .body,
+.navbar ~ .body
+ {
     padding-top:60px;
-}
+ }
 
-.hasstatusbar .uses-cjs-navigation-bar  .body {
+.hasstatusbar .uses-cjs-navigation-bar  .body,
+.hasstatusbar .navbar ~ .body {
     padding-top:80px;
 }
 
@@ -628,6 +638,12 @@ right: 0;
 top: 0;
 bottom: 0;
 }
+
+/* tests */
+
+.body #mocha {
+    margin: 0;
+}
 /* */
 .cjs-loading-overlay-container {
     position: relative;
@@ -644,6 +660,17 @@ bottom: 0;
     z-index: 1000;
     text-align: center;
     font-size: large;
+}
+
+
+.cjs-loading-overlay.ui-show {
+    -webkit-transition: z-index 0.5s ease, opacity:0.3s ease;
+    z-index: 1000;
+}
+
+.cjs-loading-overlay.ui-hide {
+    -webkit-transition: z-index 0.5s ease, opacity:0.3s ease;
+    z-index: -1;
 }
 
 .cjs-loading-overlay-compact {
@@ -690,6 +717,10 @@ display: inline;
     margin: 5px;
 }
 
+
+/* simple */
+
+
 /* css spinner from http://lea.verou.me/2013/11/cleanest-css-spinner-ever/ */
 
 /**
@@ -720,6 +751,11 @@ display: inline;
     vertical-align: middle;
     margin: 5px;
 }
+
+.cjs-loading-overlay-simple .progress {
+    margin: 100px auto 50px auto;
+}
+
 
 .cjs-loading-overlay .small.progress {
     font-size: 6px;
@@ -800,6 +836,21 @@ display: inline;
     background-repeat: no-repeat;
     display: block;
     line-height: 40px;
+}
+
+.icon-custom::before {
+    display: none !important;
+}
+
+ .icon-top.icon-custom .maskedicon {
+        background-color: currentColor;
+        -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: block;
+    height: 40px;
 }
 
 /* Standard icons */

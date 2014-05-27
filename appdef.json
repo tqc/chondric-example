@@ -95,6 +95,9 @@
     }, {
         "id": "appoptions",
         "title": "App Options"
+    }, {
+        "id": "testing",
+        "title": "Testing"
     }],
     "pageTemplate": "templates/pagetemplate.html",
     "pageScriptTemplate": "templates/pagetemplate.js"

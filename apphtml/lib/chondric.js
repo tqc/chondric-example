@@ -244,7 +244,7 @@ Chondric.App =
                     var ar = "";
                     var params = {};
                     for (var j = 0; j < mrp.length; j++) {
-                        if (mrp[j][0] == "$") params[mrp[j].substr(1)] = decodeURIComponent(parts[j]);
+                        if (mrp[j][0] == "$" && parts[j]) params[mrp[j].substr(1)] = decodeURIComponent(parts[j]);
                         if (parts[j]) ar += "/" + parts[j];
                     }
                     if (template.isSection) {
@@ -351,7 +351,7 @@ Chondric.App =
                 for (var p in swipeState) {
                     if (swipeState[p] && swipeNav[p]) {
                         if (swipeNav[p].route) {
-                            if (swipeState[p] > 0.6) {
+                            if (swipeState[p] > 0.4) {
                                 // continue change to next page
                                 loadView(swipeNav[p].route);
                                 $scope.transition.progress = 1;
@@ -651,6 +651,16 @@ Chondric.App =
                 console.log("begin internal init");
                 initEvents(function() {
                     loadHostSettings(function() {
+                        // if in debug mode and there are tests specified, load them
+                        if (app.hostSettings.debug && app.hostSettings.tests && app.hostSettings.tests.length) {
+                            $("head").append('<script src="bower_components/mocha/mocha.js"></script>')
+                            $("head").append('<script>mocha.setup("' + (app.hostSettings.mochaInterface || "bdd") + '")</script>')
+                            $("head").append('<link rel="stylesheet" href="bower_components/mocha/mocha.css" />')
+                            $("head").append('<script src="bower_components/chai/chai.js"></script>')
+                            for (var i = 0; i < app.hostSettings.tests.length; i++) {
+                                $("head").append('<script src="' + app.hostSettings.tests[i] + '"></script>')
+                            }
+                        }
 
                         // create database
                         initData(function() {
@@ -668,6 +678,8 @@ Chondric.App =
                                         };
 
                                     }
+
+
 
                                     // custom init function
                                     settings.customInit.call(app, function() {
@@ -803,6 +815,16 @@ angular.module('chondric').run(['$templateCache', function($templateCache) {
   );
 
 
+  $templateCache.put('cjs-loading-overlay-simple.html',
+    "<div class=\"cjs-loading-overlay cjs-loading-overlay-simple\">\n" +
+    "    <div ng-show=\"!error\" class=\"progress small\">\n" +
+    "        <div></div>\n" +
+    "    </div>\n" +
+    "    <div class=\"error\" ng-show=\"error\">{{error}}</div>\n" +
+    "</div>\n"
+  );
+
+
   $templateCache.put('cjs-loading-overlay.html',
     "<div class=\"cjs-loading-overlay cjs-loading-overlay-full\">\n" +
     "    <div ng-show=\"!error\" class=\"progress large\">\n" +
@@ -873,7 +895,7 @@ angular.module('chondric').run(['$templateCache', function($templateCache) {
   $templateCache.put('cjs-tab-footer.html',
     "<div class=\"tabbar\" ng-show=\"componentDefinition.active\">\n" +
     "\n" +
-    "    <button ng-repeat=\"tab in componentDefinition.data.buttons\"  ng-tap=\"setTab(tab.value)\" ng-class=\"{selected: tab.value == componentDefinition.data.selectedTab}\" class=\"icon-top icon-default\">{{tab.title}}</button>\n" +
+    "    <button ng-repeat=\"tab in componentDefinition.data.buttons track by tab.value\"  ng-tap=\"setTab(tab.value)\" ng-class=\"{selected: tab.value == componentDefinition.selectedTab}\" class=\"icon-top icon-custom\"><div class=\"maskedicon\" ng-style=\"{'-webkit-mask-image': 'url('+tab.icon+')'}\"></div> {{tab.title}}</button>\n" +
     "\n" +
     "    \n" +
     "</div>"
@@ -1094,12 +1116,14 @@ Chondric.directive('cjsLoadingOverlay', function($templateCache, $compile) {
             var overlay;
             if (attrs.overlayType == "compact") {
                 overlay = angular.element($templateCache.get("cjs-loading-overlay-compact.html"));
+            } else if (attrs.overlayType == "simple") {
+                overlay = angular.element($templateCache.get("cjs-loading-overlay-simple.html"));
             } else {
                 overlay = angular.element($templateCache.get("cjs-loading-overlay.html"));
             }
 
             element.append(overlay);
-
+            element.addClass("cjs-loading-overlay-container");
             $compile(overlay)(scope);
 
             scope.loadStatus.onUpdate(scope.$eval(attrs.cjsLoadingOverlay), function(taskGroup) {
@@ -1108,10 +1132,15 @@ Chondric.directive('cjsLoadingOverlay', function($templateCache, $compile) {
                 if (taskGroup.completed) {
                     // finished                    
                     scope.message = "finished";
-                    contentElement.addClass("ui-show").removeClass("ui-hide");
+                    if (attrs.showUnloaded === undefined)
+                        contentElement.addClass("ui-show").removeClass("ui-hide");
+                    contentElement.addClass("cjs-loaded").removeClass("cjs-unloaded");
                     overlay.addClass("ui-hide").removeClass("ui-show");
                 } else {
-                    contentElement.addClass("ui-hide").removeClass("ui-show");
+                    if (attrs.showUnloaded === undefined)
+                        contentElement.addClass("ui-hide").removeClass("ui-show");
+                    contentElement.addClass("cjs-unloaded").removeClass("cjs-loaded");
+                    contentElement.addClass("cjs-unloaded")
                     overlay.addClass("ui-show").removeClass("ui-hide");
                     scope.title = taskGroup.title;
                     scope.error = taskGroup.error;
@@ -2288,6 +2317,35 @@ Chondric.registerSharedUiComponent({
     }
 });
 Chondric.registerSharedUiComponent({
+    id: "cjs-tab-footer",
+    templateUrl: "cjs-tab-footer.html",
+    isNative: function() {
+        return false;
+    },
+    controller: function($scope) {
+        var self = $scope.componentDefinition;
+        self.scope = $scope;
+        $scope.componentId = self.id;
+
+        $scope.setTab = function(val) {
+            self.selectedTab = val;
+            var routeScope = self.app.scopesForRoutes[self.route];
+            if (routeScope) {
+                routeScope.$eval(self.data.setTab || "setTab")(val);
+            }
+        };
+
+    },
+    setState: function(self, route, active, available, data) {
+        self.data = data;
+        self.route = route;
+        self.active = active;
+        self.available = available;
+        self.selectedTab = data.selectedTab;
+    },
+
+});
+Chondric.registerSharedUiComponent({
     id: "cjs-shared-popup",
     templateUrl: "cjs-shared-popup.html",
     isNative: function() {
@@ -2443,7 +2501,7 @@ Chondric.allTransitions.crossfade = {
             element.css({
                 "display": "block",
                 "opacity": 0,
-                "z-index": 9000,
+                "z-index": 9,
             });
         },
         cancel: function(element, prevProgress) {
@@ -2469,7 +2527,7 @@ Chondric.allTransitions.crossfade = {
             element.css({
                 "display": "block",
                 "opacity": progress,
-                "z-index": 9000,
+                "z-index": 9,
             });
         }
     },
