@@ -1,6 +1,11 @@
 ## Testing
 
-Chondric supports running tests within the app using mocha.
+Chondric supports running tests within the app using mocha. Test scripts will be automatically loaded if the app is running in debug mode.
+
+First, install mocha and chai using bower:
+
+    bower install mocha --save
+    bower install chai --save
 
 In hostsettings.json, add:
 
