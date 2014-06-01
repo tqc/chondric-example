@@ -676,7 +676,55 @@ Chondric.App =
                                                 routeScope.$apply(action);
                                             }
                                         };
+                                    }
 
+                                    if (window.Keyboard) {
+                                        window.Keyboard.onshowing = function() {
+                                            $("body").addClass("haskeyboard");
+                                        };
+                                        window.Keyboard.onhiding = function() {
+                                            $("body").removeClass("haskeyboard");
+                                        };
+                                        /*
+                                        window.Keyboard.onshowing = function() {
+                                            $("body").addClass("haskeyboard");
+                                            var t0 = new Date().getTime();
+
+                                            window.setTimeout(function() {
+                                                var sel = window.getSelection();
+                                                if (sel && sel.type == "Caret") {
+                                                    var fn = sel.focusNode;
+                                                    if (fn.nodeName == "#text") fn = fn.parentElement;
+                                                    var scrollContainer = $(fn).closest(".body")[0];
+                                                    var scr = scrollContainer.getBoundingClientRect();
+                                                    var fnr = fn.getBoundingClientRect();
+                                                    var startTop = scrollContainer.scrollTop;
+                                                    var targetTop = scrollContainer.scrollTop + fnr.top - scr.top - 100;
+
+
+                                                    var step = function() {
+                                                        var t = new Date().getTime();
+                                                        var dt = t - t0;
+                                                        if (dt > 300) {
+                                                            scrollContainer.scrollTop = targetTop;
+                                                        } else {
+                                                            scrollContainer.scrollTop = Math.round(startTop + ((targetTop - startTop) * dt / 300));
+                                                            window.requestAnimationFrame(step);
+                                                        }
+                                                    };
+                                                    window.requestAnimationFrame(step);
+
+                                                }
+
+                                            }, 0);
+                                        };
+                                        window.Keyboard.onhiding = function() {
+                                            $("body").removeClass("haskeyboard");
+                                        };
+                                        window.Keyboard.onshow = function() {
+
+                                        };
+*/
                                     }
 
 
@@ -884,7 +932,7 @@ angular.module('chondric').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('cjs-shared-popup.html',
-    "<div cjs-popup=\"componentDefinition.popuptrigger\">\n" +
+    "<div cjs-popup=\"componentDefinition.popuptrigger\" ng-class=\"{nativetransition: componentDefinition.nativeTransition}\">\n" +
     "<div ng-if=\"componentDefinition.data.templateUrl || componentDefinition.contentTemplateUrl\" ng-include=\"componentDefinition.data.templateUrl || componentDefinition.contentTemplateUrl\"></div>\n" +
     "<div ng-if=\"componentDefinition.data.jsonTemplate || componentDefinition.contentJsonTemplate\" cjs-json-template=\"componentDefinition.data.jsonTemplate || componentDefinition.contentJsonTemplate\" data=\"componentDefinition.data\"></div>\n" +
     "\n" +
@@ -1034,10 +1082,9 @@ Chondric.directive('ngTap', function() {
 
             scope.lastTap = {
                 element: element,
-                x: e.originalEvent.changedTouches ? e.originalEvent.changedTouches.offsetX : e.offsetX,
-                y: e.originalEvent.changedTouches ? e.originalEvent.changedTouches.offsetY : e.offsetY
+                x: e.originalEvent.changedTouches ? e.originalEvent.changedTouches[0].clientX : e.clientX,
+                y: e.originalEvent.changedTouches ? e.originalEvent.changedTouches[0].clientY : e.clientY
             };
-            scope.$apply(attrs.ngTap, element);
 
 
             if (!useMouse) {
@@ -1054,7 +1101,9 @@ Chondric.directive('ngTap', function() {
             element.removeClass('active');
             element.addClass('deactivated');
 
-
+            window.setTimeout(function() {
+                scope.$apply(attrs.ngTap, element);
+            }, 0);
         };
 
         function start() {
@@ -1193,6 +1242,8 @@ Chondric.factory('loadStatus', function() {
                     error: null,
                     start: function() {
                         task.active = true;
+                        task.error = null;
+                        task.progressCurrent = 0;
                     },
                     finish: function() {
                         task.progressCurrent = task.progressTotal;
@@ -1482,6 +1533,7 @@ Chondric.directive("cjsPopup", function() {
 
             element.addClass("modal");
             element.addClass("popup");
+
             var parentPageElement = element.closest(".chondric-page");
             if (parentPageElement.length === 0) parentPageElement = element.closest(".chondric-section");
             if (parentPageElement.length === 0) parentPageElement = element.closest(".chondric-viewport");
@@ -1493,15 +1545,25 @@ Chondric.directive("cjsPopup", function() {
 
             scope.$watch(attrs.cjsPopup, function(val) {
                 if (document.activeElement) document.activeElement.blur();
-                if (!val) {
-                    overlay.removeClass("active");
-                    element.removeClass("active");
-                    window.document.removeEventListener(useMouse ? 'mousedown' : "touchstart", clickOutsidePopup, true);
-                } else {
-                    window.document.addEventListener(useMouse ? 'mousedown' : "touchstart", clickOutsidePopup, true);
+                if (element.hasClass("nativetransition")) {
+                    if (!val) {
+                        element.removeClass("active");
+                    } else {
+                        element.addClass("active");
+                    }
 
-                    overlay.addClass("active");
-                    element.addClass("active");
+                } else {
+                    if (!val) {
+                        overlay.removeClass("active");
+                        element.removeClass("active");
+                        window.document.removeEventListener(useMouse ? 'mousedown' : "touchstart", clickOutsidePopup, true);
+                    } else {
+                        window.document.addEventListener(useMouse ? 'mousedown' : "touchstart", clickOutsidePopup, true);
+
+                        overlay.addClass("active");
+                        element.addClass("active");
+                    }
+
                 }
             });
         }
@@ -1604,7 +1666,10 @@ Chondric.directive("cjsSidepanel", function() {
                 panel.css({
                     "display": "",
                     "-webkit-transition": "",
-                    "-webkit-transform": ""
+                    "-webkit-transform": "",
+                    // keep position because there isn't a reasonable default
+                    "right": 0,
+                    "left": "auto"
                 });
             }
         },
@@ -1716,7 +1781,10 @@ Chondric.directive("cjsSidepanel", function() {
                 panel.css({
                     "display": "",
                     "-webkit-transition": "",
-                    "-webkit-transform": ""
+                    "-webkit-transform": "",
+                    // keep position because there isn't a reasonable default
+                    "left": 0,
+                    "right": "auto"
                 });
             }
         },
@@ -2131,7 +2199,7 @@ Chondric.directive('cjsSharedComponent', function($compile) {
             if (cd.isNative && cd.isNative()) return;
             element.addClass("sharedcomponent-" + cd.id);
             var template = "";
-            template += "<div ng-controller=\"componentDefinition.controller\" >";
+            template += "<div ng-if='!componentDefinition.isNative()' ng-controller=\"componentDefinition.controller\" >";
             if (cd.template) {
                 template += cd.template;
             } else if (cd.templateUrl) {
@@ -2211,6 +2279,7 @@ Chondric.registerSharedUiComponent({
         $scope.handleSharedPopupButtonClick = function(b) {
             self.popuptrigger = null;
             var routeScope = self.app.scopesForRoutes[self.route];
+            self.app.setSharedUiComponentState(routeScope, "cjs-action-sheet", false, true, null);
             if (routeScope && b.action) {
                 routeScope.$eval(b.action);
             }
@@ -2240,7 +2309,7 @@ Chondric.registerSharedUiComponent({
     id: "cjs-navigation-bar",
     templateUrl: "cjs-navigation-bar.html",
     isNative: function() {
-        return false;
+        return (window.NativeNav && true) || false;
     },
     controller: function($scope) {
         var self = $scope.componentDefinition;
@@ -2267,6 +2336,7 @@ Chondric.registerSharedUiComponent({
             }
         };
     },
+    /*
     setStatePartial: function(self, initialState, finalState, progress) {
         if (!self.globalHeaderOptions) return;
         var v1 = self.globalHeaderOptions.v1;
@@ -2289,30 +2359,35 @@ Chondric.registerSharedUiComponent({
 
 
     },
+    */
     setState: function(self, route, active, available, data) {
         if (!self.globalHeaderOptions) return;
 
         self.route = route;
         self.data = data;
-        var v1 = self.globalHeaderOptions.v1;
-        if (v1 && v1.route == route) {
-            self.globalHeaderOptions.v1 = {
-                route: route,
-                active: active,
-                available: available,
-                data: data
-            };
-            self.globalHeaderOptions.transitionState = 0;
-        } else {
-            self.globalHeaderOptions.v2 = {
-                route: route,
-                active: active,
-                available: available,
-                data: data
-            };
-            self.globalHeaderOptions.transitionState = 1;
-        }
 
+        if (window.NativeNav) {
+            window.NativeNav.showNavbar(route, active, data.leftButtons, data.title, data.rightButtons, data.titleChanged);
+        } else {
+            var v1 = self.globalHeaderOptions.v1;
+            if (v1 && v1.route == route) {
+                self.globalHeaderOptions.v1 = {
+                    route: route,
+                    active: active,
+                    available: available,
+                    data: data
+                };
+                self.globalHeaderOptions.transitionState = 0;
+            } else {
+                self.globalHeaderOptions.v2 = {
+                    route: route,
+                    active: active,
+                    available: available,
+                    data: data
+                };
+                self.globalHeaderOptions.transitionState = 1;
+            }
+        }
 
     }
 });
@@ -2350,6 +2425,7 @@ Chondric.registerSharedUiComponent({
     templateUrl: "cjs-shared-popup.html",
     isNative: function() {
         return false;
+        //return (window.NativeNav && true) || false;
     },
     controller: function($scope) {
         var self = $scope.componentDefinition;
@@ -2384,12 +2460,32 @@ Chondric.registerSharedUiComponent({
         self.data = data;
         self.route = route;
 
-        if (!active) {
-            self.popuptrigger = null;
+        if (window.NativeNav) {
+            if (active && !self.popuptrigger) {
+                window.NativeNav.startNativeTransition("popup", function() {
+                    if (screen.width < 600) {
+                        document.getElementById("viewport").setAttribute("content", "width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=0");
+                    } else {
+                        document.getElementById("viewport").setAttribute("content", "width=500, height=500, initial-scale=1, maximum-scale=1, user-scalable=0");
+                    }
+                    self.popuptrigger = {};
+                    self.nativeTransition = true;
+                    self.app.scopesForRoutes[self.route].$apply();
+                });
+            } else if (!active && self.popuptrigger) {
+                window.NativeNav.startNativeTransition("closepopup", function() {
+                    document.getElementById("viewport").setAttribute("content", "width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=0");
+                    self.popuptrigger = null;
+                    self.app.scopesForRoutes[self.route].$apply();
+                });
+            }
         } else {
-            self.popuptrigger = {};
+            if (!active) {
+                self.popuptrigger = null;
+            } else {
+                self.popuptrigger = {};
+            }
         }
-
     }
 });
 Chondric.registerSharedUiComponent({
