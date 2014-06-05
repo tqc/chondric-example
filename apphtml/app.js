@@ -7,6 +7,7 @@ var app = new Chondric.App({
     mightBePhoneGap: true,
     angularModules: ["ui.utils", "yaru22.md"],
     firstPageTemplate: "/start",
+    enableTransitions: true,
     getDatabase: function() {
         // optionally return a database that will be assigned to app.db
         // return new ExampleDb();
