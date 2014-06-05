@@ -45,7 +45,7 @@
         "id": "routing",
         "title": "Nested Routing"
     }, {
-        "id": "cordova",
+        "id": "cordovapage",
         "title": "Cordova / Phonegap Integration"
     }, {
         "id": "actionsheet",
