@@ -91,7 +91,7 @@ Chondric.App =
                 isSection: false,
                 controller: pageController,
                 templateUrl: templateUrl,
-                templateId: viewOptions.templateId,
+                templateId: viewOptions.templateId
             };
             preloadTemplate(templateUrl);
         };
@@ -122,7 +122,7 @@ Chondric.App =
 
             allRoutes[route] = {
                 isSection: true,
-                controller: pageController,
+                controller: pageController
                 //            templateUrl: viewOptions.templateUrl,
                 //            templateId: viewOptions.templateId,
             };
@@ -165,6 +165,18 @@ Chondric.App =
                 $scope[name] = null;
             };
 
+            $scope.updateSwipeNav = app.updateSwipeNav = function(routeScope, data) {
+                var d = app.swipeNavForRoutes[routeScope.rk] || {};
+                $.extend(d, data);
+                app.swipeNavForRoutes[routeScope.rk] = d;
+                routeScope.swipeNav = d;
+                if ($scope.route == routeScope.rk) {
+                    if (window.NativeNav) {
+                        window.NativeNav.setValidGestures(d);
+                    }
+                }
+            };
+
             $scope.getSharedUiComponentState = app.getSharedUiComponentState = function(routeScope, componentId) {
                 app.scopesForRoutes[routeScope.rk] = routeScope;
 
@@ -187,6 +199,7 @@ Chondric.App =
 
             };
 
+
             $scope.setSharedUiComponentState = app.setSharedUiComponentState = function(routeScope, componentId, active, available, data) {
                 var cs = app.getSharedUiComponentState(routeScope, componentId);
                 // if parameters are undefined, the previous value will be used
@@ -203,9 +216,11 @@ Chondric.App =
                     uc.asString = uc.asArray.join(" ");
                 }
 
+                var component = app.sharedUiComponents[componentId];
+
+                if (component.getSwipeNav) app.updateSwipeNav(routeScope, component.getSwipeNav(component, cs.active, cs.available));
 
                 if ($scope.route == routeScope.rk) {
-                    var component = app.sharedUiComponents[componentId];
                     component.setState(component, routeScope.rk, cs.active, cs.available, cs.data);
                 }
 
@@ -213,6 +228,9 @@ Chondric.App =
 
 
             app.scopesForRoutes = {};
+            app.scrollPosForRoutes = {};
+            app.swipeNavForRoutes = {};
+            app.transitionOriginForRoutes = {};
             app.componentStatesForRoutes = {};
 
             function loadView(url) {
@@ -273,7 +291,7 @@ Chondric.App =
                 }
             }
 
-            $scope.changePage = app.changePage = function(p, transition) {
+            $scope.changePage = app.changePage = function(p, transition, originElement) {
                 var r;
                 if (p instanceof Array) {
                     r = "";
@@ -288,20 +306,100 @@ Chondric.App =
                 }
                 if ($scope.route == r) return;
                 if ($scope.lastRoute == r) $scope.lastRoute = null;
-                $scope.transition.type = transition || "crossfade";
-                $scope.noTransition = true;
-                loadView(r);
-                $scope.nextRoute = r;
-                $scope.transition.progress = 0;
-                $scope.transition.from = $scope.route;
-                $scope.transition.to = $scope.nextRoute;
-                window.setTimeout(function() {
-                    $scope.noTransition = false;
-                    $scope.route = r;
-                    $scope.transition.progress = 1;
-                    $scope.$apply();
-                }, 100);
 
+                var fromRoute = $scope.route;
+                var toRoute = r;
+                var fromRect = null;
+
+                if (fromRoute) {
+                    app.scrollPosForRoutes[fromRoute] = {
+                        x: window.scrollX,
+                        y: window.scrollY
+                    };
+
+                    if (originElement && originElement.length) {
+                        // todo: find parent element if necessary and set appropriate origin rect                   
+                        fromRect = app.transitionOriginForRoutes[fromRoute] = originElement[0].getBoundingClientRect();
+                    } else {
+                        fromRect = app.transitionOriginForRoutes[fromRoute] = null;
+                    }
+                }
+
+
+                if (app.transitionMode == "none") {
+                    loadView(r);
+                    window.setTimeout(function() {
+                        $scope.route = r;
+                        $scope.$apply();
+                        transitionComponents(fromRoute, toRoute, 1);
+                        $scope.$apply();
+                    }, 10);
+
+                } else if (app.transitionMode == "native") {
+                    // disable pointer events for 300ms to prevent ghost clicks.
+                    if (window.jstimer) window.jstimer.start("transitioningTimeout");
+
+                    $(document.body).addClass("cjs-transitioning");
+                    window.setTimeout(function() {
+                        if (window.jstimer) window.jstimer.finish("transitioningTimeout");
+                        $(document.body).removeClass("cjs-transitioning");
+                    }, 300);
+                    var actualTransition = "crossfade";
+                    var originRect = null;
+                    if (transition == "zoomin" && fromRect) {
+                        actualTransition = "zoomin";
+                        originRect = fromRect;
+                    }
+                    if (transition == "zoomout" && app.transitionOriginForRoutes[toRoute]) {
+                        actualTransition = "zoomout";
+                        originRect = app.transitionOriginForRoutes[toRoute];
+                    }
+
+                    window.NativeNav.startNativeTransition(actualTransition, originRect, function() {
+                        $(".chondric-page.active").removeClass("active");
+                        if (window.jstimer) window.jstimer.finish("transitioningCallback1");
+                        if (window.jstimer) window.jstimer.start("transitioningTimeout2");
+                        window.setTimeout(function() {
+                            if (window.jstimer) window.jstimer.finish("transitioningTimeout2");
+                            if (window.jstimer) window.jstimer.start("transitioningTimeout3");
+                            loadView(r);
+                            $scope.route = r;
+                            $scope.$apply();
+                            transitionComponents(fromRoute, toRoute, 1);
+                            $scope.$apply();
+                            window.NativeNav.finishNativeTransition();
+                            if (window.jstimer) window.jstimer.finish("transitioningTimeout3");
+                        }, 0);
+
+                    });
+                } else {
+
+                    $scope.transition.type = transition || "crossfade";
+                    $scope.noTransition = true;
+                    loadView(r);
+                    $scope.nextRoute = r;
+                    $scope.transition.progress = 0;
+                    $scope.transition.from = $scope.route;
+                    $scope.transition.to = $scope.nextRoute;
+                    $scope.transition.fromRect = fromRect;
+
+                    if (fromRoute) {
+                        $scope.transition.fromScroll = app.scrollPosForRoutes[fromRoute];
+                        $scope.transition.fromRect = app.transitionOriginForRoutes[fromRoute];
+                    }
+                    $scope.transition.toRect = app.transitionOriginForRoutes[$scope.transition.to];
+
+                    $scope.transition.toScroll = app.scrollPosForRoutes[$scope.transition.to] || {
+                        x: 0,
+                        y: 0
+                    };
+                    window.setTimeout(function() {
+                        $scope.noTransition = false;
+                        $scope.route = r;
+                        $scope.transition.progress = 1;
+                        $scope.$apply();
+                    }, 100);
+                }
             };
 
             $scope.updateSwipe = function(swipeState, swipeNav, pageScope) {
@@ -412,30 +510,30 @@ Chondric.App =
                 }
             }
 
-            $scope.$watch("transition", function(transition) {
-                if (!transition) return;
-                if (!transition.to) return;
-                var fromStates = app.componentStatesForRoutes[transition.from] || {};
-                var toStates = app.componentStatesForRoutes[transition.to] || {};
+            function transitionComponents(fromRoute, toRoute, progress) {
+                if (!toRoute) return;
+
+                var fromStates = app.componentStatesForRoutes[fromRoute] || {};
+                var toStates = app.componentStatesForRoutes[toRoute] || {};
 
                 for (var k in app.sharedUiComponents) {
                     var component = app.sharedUiComponents[k];
                     var fromState = fromStates[k] || {
-                        route: transition.from,
+                        route: fromRoute,
                         active: false,
                         available: false,
                         data: {}
                     };
                     var toState = toStates[k] || {
-                        route: transition.to,
+                        route: toRoute,
                         active: false,
                         available: false,
                         data: {}
                     };
                     if (component.setStatePartial) {
-                        component.setStatePartial(component, fromState, toState, transition.progress);
+                        component.setStatePartial(component, fromState, toState, progress);
                     } else {
-                        if (transition.progress > 0.5) {
+                        if (progress > 0.5) {
                             component.setState(component, toState.route, toState.active, toState.available, toState.data);
                         } else {
                             component.setState(component, fromState.route, fromState.active, fromState.available, fromState.data);
@@ -443,17 +541,38 @@ Chondric.App =
                     }
                 }
 
+            }
+
+            $scope.$watch("transition", function(transition) {
+                if (!transition) return;
+                if (!transition.to) return;
+
+                transitionComponents(transition.from, transition.to, transition.progress);
+
+
             }, true);
 
 
             $scope.$watch("route", function(url, oldVal) {
                 if (!url) return;
-                if (document.activeElement) document.activeElement.blur();
+                if (document.activeElement && app.transitionMode != "native") document.activeElement.blur();
                 $scope.nextRoute = null;
                 $scope.lastRoute = oldVal;
                 $location.path(url).replace();
                 loadView(url);
                 viewCleanup($scope.openViews, [$scope.route, $scope.nextRoute, $scope.lastRoute]);
+                if (window.NativeNav) {
+                    window.NativeNav.setValidGestures(app.swipeNavForRoutes[url] || {});
+                }
+
+                window.setTimeout(function() {
+                    var sp = app.scrollPosForRoutes[url];
+                    if (sp) {
+                        window.scrollTo(sp.x, sp.y);
+                    } else {
+                        window.scrollTo(0, 0);
+                    }
+                }, 10);
             });
             if (options.appCtrl) options.appCtrl($scope);
         }; // end appCtrl
@@ -474,6 +593,7 @@ Chondric.App =
         var settings = {
             name: "Base App",
             mightBePhoneGap: true,
+            enableTransitions: true,
             loadPageFromHash: true,
             scriptGroups: [],
             angularModules: [],
@@ -624,7 +744,7 @@ Chondric.App =
                     // for now just check if height matches the full screen
                     var w = $(window).width();
                     var h = $(window).height();
-                    console.log("Size changed: " + w + "x" + h);
+                    //                    console.log("Size changed: " + w + "x" + h);
                     if (h == 1024 || h == 768 || h == 320 || h == 568 || h == 480) {
                         $(".chondric-viewport").addClass("hasstatusbar");
                     } else {
@@ -653,12 +773,12 @@ Chondric.App =
                     loadHostSettings(function() {
                         // if in debug mode and there are tests specified, load them
                         if (app.hostSettings.debug && app.hostSettings.tests && app.hostSettings.tests.length) {
-                            $("head").append('<script src="bower_components/mocha/mocha.js"></script>')
-                            $("head").append('<script>mocha.setup("' + (app.hostSettings.mochaInterface || "bdd") + '")</script>')
-                            $("head").append('<link rel="stylesheet" href="bower_components/mocha/mocha.css" />')
-                            $("head").append('<script src="bower_components/chai/chai.js"></script>')
+                            $("head").append('<script src="bower_components/mocha/mocha.js"></script>');
+                            $("head").append('<script>mocha.setup("' + (app.hostSettings.mochaInterface || "bdd") + '")</script>');
+                            $("head").append('<link rel="stylesheet" href="bower_components/mocha/mocha.css" />');
+                            $("head").append('<script src="bower_components/chai/chai.js"></script>');
                             for (var i = 0; i < app.hostSettings.tests.length; i++) {
-                                $("head").append('<script src="' + app.hostSettings.tests[i] + '"></script>')
+                                $("head").append('<script src="' + app.hostSettings.tests[i] + '"></script>');
                             }
                         }
 
@@ -669,13 +789,48 @@ Chondric.App =
                                 // attach common events
                                 attachEvents(function() {
 
+                                    app.transitionMode = settings.enableTransitions ? "html" : "none";
+
                                     if (window.NativeNav) {
+                                        if (settings.enableTransitions) app.transitionMode = "native";
                                         window.NativeNav.handleAction = function(route, action) {
                                             var routeScope = app.scopesForRoutes[route];
                                             if (routeScope) {
                                                 routeScope.$apply(action);
                                             }
                                         };
+                                        var gestureOpenedComponent = null;
+                                        window.NativeNav.updateViewWithComponent = function(componentId) {
+                                            // fill the frame with a side panel
+                                            console.log("NativeNav requested component " + componentId);
+                                            gestureOpenedComponent = app.sharedUiComponents[componentId];
+                                            if (gestureOpenedComponent.forceShow) gestureOpenedComponent.forceShow(gestureOpenedComponent);
+                                            window.NativeNav.setCloseModalCallback(gestureOpenedComponent.scope.hideModal);
+                                            app.scope.$apply();
+
+                                        };
+
+                                        window.NativeNav.updateViewWithRoute = function(newRoute) {
+                                            // move to the next route
+                                            console.log("NativeNav requested route " + newRoute);
+                                        };
+
+                                        window.NativeNav.cancelGesture = function() {
+                                            console.log("Gesture canceled");
+                                            if (gestureOpenedComponent) {
+                                                if (gestureOpenedComponent.forceHide) gestureOpenedComponent.forceHide(gestureOpenedComponent);
+                                                app.scope.$apply();
+                                            }
+                                        };
+
+
+                                    }
+
+                                    $("body").addClass("cjs-transitions-" + app.transitionMode);
+                                    if (app.transitionMode == "html") {
+                                        $("body").addClass("cjs-scrolling-page");
+                                    } else {
+                                        $("body").addClass("cjs-scrolling-window");
                                     }
 
                                     if (window.Keyboard) {
@@ -817,7 +972,7 @@ Chondric.factory('sharedUi', function() {
                         var state = app.getSharedUiComponentState($scope, componentKey);
                         fn(state);
                         app.setSharedUiComponentState($scope, componentKey, state.active, state.available, state.data);
-                    },
+                    }
 
                 };
             };
@@ -826,6 +981,51 @@ Chondric.factory('sharedUi', function() {
                 service.addComponent(alias, componentAliases[alias]);
             }
             return service;
+        }
+    };
+});
+
+
+
+Chondric.directive('ngStylePrefixer', function() {
+
+    var style = document.body.style;
+    var transitionStyle = "transition";
+    if (style.transition === undefined && style.webkitTransition !== undefined) transitionStyle = "-webkit-transition";
+    else if (style.transition === undefined && style.mozTransition !== undefined) transitionStyle = "-moz-transition";
+
+    var transformStyle = "transform";
+    if (style.transform === undefined && style.webkitTransform !== undefined) transformStyle = "-webkit-transform";
+    else if (style.transform === undefined && style.mozTransform !== undefined) transformStyle = "-moz-transform";
+
+    return {
+        restrict: "AC",
+        link: function(scope, element, attr) {
+            scope.$watch(attr.ngStylePrefixer, function ngStyleWatchAction(newStyles, oldStyles) {
+                if (oldStyles && (newStyles !== oldStyles)) {
+                    for (var k in oldStyles) {
+                        element.css(k, '');
+                    }
+                }
+
+                if (newStyles) {
+                    var convertedStyles = {};
+
+                    for (var k in newStyles) {
+                        var v = newStyles[k];
+                        if (k == "transform") {
+                            k = transformStyle;
+                        }
+                        if (k == "transition") {
+                            if (v) v = v.replace("transform", transformStyle);
+                        }
+
+                        convertedStyles[k] = v;
+                    }
+                    element.css(convertedStyles);
+
+                }
+            }, true);
         }
     };
 });
@@ -841,7 +1041,7 @@ angular.module('chondric').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('cjs-left-panel.html',
-    "<div cjs-sidepanel=\"componentDefinition.popuptrigger\">\n" +
+    "<div cjs-sidepanel=\"componentDefinition.popuptrigger\" ng-class=\"{active: componentDefinition.active}\">\n" +
     "<div ng-if=\"componentDefinition.data.templateUrl || componentDefinition.contentTemplateUrl\" ng-include=\"componentDefinition.data.templateUrl || componentDefinition.contentTemplateUrl\"></div>\n" +
     "<div ng-if=\"componentDefinition.data.jsonTemplate || componentDefinition.contentJsonTemplate\" cjs-json-template=\"componentDefinition.data.jsonTemplate || componentDefinition.contentJsonTemplate\" data=\"componentDefinition.data\"></div>\n" +
     "</div>"
@@ -890,20 +1090,13 @@ angular.module('chondric').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('cjs-navigation-bar.html',
-    "<div class=\"navbar\" ng-style=\"{'-webkit-transform': 'translate(0, '+(-60 + (((globalHeaderOptions.v1.active && 60 || 0) * (1 - globalHeaderOptions.transitionState)) + ((globalHeaderOptions.v2.active && 60 || 0) * (globalHeaderOptions.transitionState))))+'px)' }\">\n" +
-    "    <div class=\"v1\" ng-style=\"{opacity:(1-globalHeaderOptions.transitionState), 'z-index': ((globalHeaderOptions.transitionState > 0.5) ? 1: 2)  }\">\n" +
-    "        <button class=\"left\" ng-repeat=\"b in globalHeaderOptions.v1.data.leftButtons\" ng-tap=\"handleSharedHeaderButtonClick(globalHeaderOptions.v1, b, lastTap)\">{{b.title}}</button>\n" +
-    "        <h1 ng-show=\"!globalHeaderOptions.v1.data.titleEditable\">{{globalHeaderOptions.v1.data.title}}</h1>\n" +
-    "        <input class=\"h1\" ng-show=\"globalHeaderOptions.v1.data.titleEditable\" type=\"text\" ng-model=\"globalHeaderOptions.v1.data.title\" ng-change=\"titleChanged()\" />\n" +
-    "        <button class=\"right\" ng-repeat=\"b in globalHeaderOptions.v1.data.rightButtons\" ng-tap=\"handleSharedHeaderButtonClick(globalHeaderOptions.v1, b, lastTap)\">{{b.title}}</button>\n" +
-    "    </div>\n" +
-    "    <div class=\"v2\" ng-style=\"{opacity:(globalHeaderOptions.transitionState), 'z-index': ((globalHeaderOptions.transitionState > 0.5) ? 2: 1)}\">\n" +
-    "        <button class=\"left\" ng-repeat=\"b in globalHeaderOptions.v2.data.leftButtons\" ng-tap=\"handleSharedHeaderButtonClick(globalHeaderOptions.v2, b, lastTap)\">{{b.title}}</button>\n" +
-    "        <h1 ng-show=\"!globalHeaderOptions.v2.data.titleEditable\">{{globalHeaderOptions.v2.data.title}}</h1>\n" +
-    "        <input class=\"h1\" ng-show=\"globalHeaderOptions.v2.data.titleEditable\" type=\"text\" ng-model=\"globalHeaderOptions.v2.data.title\" ng-change=\"titleChanged()\" />\n" +
-    "        <button class=\"right\" ng-repeat=\"b in globalHeaderOptions.v2.data.rightButtons\" ng-tap=\"handleSharedHeaderButtonClick(globalHeaderOptions.v2, b, lastTap)\">{{b.title}}</button>\n" +
-    "    </div>\n" +
-    "</div>\n"
+    "<div class=\"navbar\" ng-repeat=\"state in componentDefinition.states track by $index\" ng-style-prefixer=\"{zIndex:(state.isActivating? 1200 : 1100), 'top': (state.translateY)+'px', opacity: state.opacity, 'transition': 'opacity 0.3s ease, top 0.3s ease'}\">\n" +
+    "     <button class=\"left icon-left icon-custom\" ng-repeat=\"b in state.data.leftButtons\" ng-tap=\"handleSharedHeaderButtonClick(state, b, lastTap)\" ng-class=\"{'icon-only': (b.icon ? true: false)}\"><div ng-if=\"b.icon\" class=\"maskedicon\" ng-style=\"{'-webkit-mask-image': 'url('+b.icon+')'}\"></div> {{b.title}}</button>\n" +
+    "        <h1 ng-show=\"!state.data.titleEditable\">{{state.data.title}}</h1>\n" +
+    "        <input class=\"h1\" ng-show=\"state.data.titleEditable\" type=\"text\" ng-model=\"state.data.title\" ng-change=\"titleChanged(state)\" />\n" +
+    "        <button class=\"right icon-right icon-custom\" ng-repeat=\"b in state.data.rightButtons\" ng-tap=\"handleSharedHeaderButtonClick(state, b, lastTap)\" ng-class=\"{'icon-only': (b.icon ? true: false)}\"><div ng-if=\"b.icon\" class=\"maskedicon\" ng-style=\"{'-webkit-mask-image': 'url('+b.icon+')'}\"></div> {{b.title}}</button>\n" +
+    "\n" +
+    "</div>"
   );
 
 
@@ -923,7 +1116,7 @@ angular.module('chondric').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('cjs-right-panel.html',
-    "<div cjs-sidepanel=\"componentDefinition.popuptrigger\">\n" +
+    "<div cjs-sidepanel=\"componentDefinition.popuptrigger\" ng-class=\"{active: componentDefinition.active}\">\n" +
     "<div ng-if=\"componentDefinition.data.templateUrl || componentDefinition.contentTemplateUrl\" ng-include=\"componentDefinition.data.templateUrl || componentDefinition.contentTemplateUrl\"></div>\n" +
     "<div ng-if=\"componentDefinition.data.jsonTemplate || componentDefinition.contentJsonTemplate\" cjs-json-template=\"componentDefinition.data.jsonTemplate || componentDefinition.contentJsonTemplate\" data=\"componentDefinition.data\"></div>\n" +
     "\n" +
@@ -1047,6 +1240,32 @@ Chondric.VersionedDatabase = function(db, updatefunctions, tables) {
 
 };
 Chondric.directive('ngTap', function() {
+    var lastTapLocation;
+
+    var iOS = (navigator.userAgent.match(/(iPad|iPhone|iPod)/g) ? true : false);
+
+    if (iOS && false) {
+        var cancelMouseEvent = function(event) {
+            if (!lastTapLocation) return;
+            if (Math.abs(event.screenX - lastTapLocation.x) < 25 && Math.abs(event.screenY - lastTapLocation.y) < 25) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+        };
+        window.document.addEventListener('mouseup', cancelMouseEvent, true);
+        window.document.addEventListener('mousedown', cancelMouseEvent, true);
+        window.document.addEventListener('click', function(event) {
+            if (window.jstimer) window.jstimer.finish("ghostclick");
+            cancelMouseEvent(event);
+        }, true);
+    }
+
+    if (iOS) {
+        window.document.addEventListener('click', function(event) {
+            if (window.jstimer) window.jstimer.finish("ghostclick");
+        }, true);
+    }
+
 
     return function(scope, element, attrs) {
         element.addClass('tappable');
@@ -1054,9 +1273,16 @@ Chondric.directive('ngTap', function() {
         var active = false;
         var touching = false;
 
+        var startX = 0;
+        var startY = 0;
+
         // detect move and cancel tap if drag started
         var move = function(e) {
-            cancel(e);
+            var x = e.originalEvent.touches ? e.originalEvent.touches[0].clientX : e.clientX;
+            var y = e.originalEvent.touches ? e.originalEvent.touches[0].clientY : e.clientY;
+            if (Math.abs(x - startX) > 10 || Math.abs(y - startY) > 10) {
+                cancel(e);
+            }
         };
 
         // called if the mouse moves too much or leaves the element
@@ -1106,7 +1332,10 @@ Chondric.directive('ngTap', function() {
             }, 0);
         };
 
-        function start() {
+        function start(e) {
+
+            startX = e.originalEvent.touches ? e.originalEvent.touches[0].clientX : e.clientX;
+            startY = e.originalEvent.touches ? e.originalEvent.touches[0].clientY : e.clientY;
 
             if (!useMouse) {
                 element.bind('touchmove', move);
@@ -1124,16 +1353,22 @@ Chondric.directive('ngTap', function() {
         }
 
         // called on mousedown or touchstart. Multiple calls are ignored.
-        var mouseStart = function() {
+        var mouseStart = function(e) {
+            if (e.which != 1) return;
             if (active || touching) return;
             touching = false;
-            start();
+            start(e);
         };
 
-        var touchStart = function() {
+        var touchStart = function(e) {
+            lastTapLocation = {
+                x: e.originalEvent.touches[0].screenX,
+                y: e.originalEvent.touches[0].screenY
+            };
             if (active) return;
             touching = true;
-            start();
+            if (window.jstimer) window.jstimer.start("tap");
+            start(e);
         };
 
         var useMouse = true;
@@ -1175,7 +1410,8 @@ Chondric.directive('cjsLoadingOverlay', function($templateCache, $compile) {
             element.addClass("cjs-loading-overlay-container");
             $compile(overlay)(scope);
 
-            scope.loadStatus.onUpdate(scope.$eval(attrs.cjsLoadingOverlay), function(taskGroup) {
+
+            function onUpdate(taskGroup) {
                 scope.taskGroup = taskGroup;
                 scope.currentTask = taskGroup.currentTask;
                 if (taskGroup.completed) {
@@ -1195,7 +1431,12 @@ Chondric.directive('cjsLoadingOverlay', function($templateCache, $compile) {
                     scope.error = taskGroup.error;
                     scope.message = taskGroup.message;
                 }
-            });
+            }
+            scope.$watch("loadStatus", function(val) {
+                if (!val) return;
+                val.onUpdate(scope.$eval(attrs.cjsLoadingOverlay), onUpdate);
+            })
+
         }
     };
 });
@@ -1381,7 +1622,7 @@ Chondric.directive("cjsPopover", function() {
             }
 
             scope.$watch(attrs.cjsPopover, function(val) {
-                if (document.activeElement && useOverlay) document.activeElement.blur();
+                if (document.activeElement && useOverlay && !window.NativeNav) document.activeElement.blur();
                 var overlay = ensureOverlay(element, useOverlay);
 
                 if (!val) {
@@ -1544,7 +1785,7 @@ Chondric.directive("cjsPopup", function() {
             }
 
             scope.$watch(attrs.cjsPopup, function(val) {
-                if (document.activeElement) document.activeElement.blur();
+                if (document.activeElement && !window.NativeNav) document.activeElement.blur();
                 if (element.hasClass("nativetransition")) {
                     if (!val) {
                         element.removeClass("active");
@@ -1855,7 +2096,7 @@ Chondric.directive("cjsSidepanel", function() {
 
             scope.$watch(attrs.cjsSidepanel, function(val, oldval) {
                 if (!val && !oldval) return;
-                if (document.activeElement && (((val && !oldval) || !(val && oldval)) || val.progress != oldval.progress)) {
+                if (document.activeElement && !window.NativeNav && (((val && !oldval) || !(val && oldval)) || val.progress != oldval.progress)) {
                     document.activeElement.blur();
                 }
                 var transition = "coverRight";
@@ -1916,6 +2157,7 @@ Chondric.directive("cjsSwipe", function() {
     return {
         //        restrict: "E",
         link: function(scope, element) {
+            if (window.NativeNav) return;
             var useMouse = true;
             var iOS = (navigator.userAgent.match(/(iPad|iPhone|iPod)/g) ? true : false);
             if (iOS) {
@@ -2157,16 +2399,16 @@ Chondric.directive('chondricViewport', function($compile) {
                 // first level
                 element.addClass("chondric-viewport");
                 //                template = "<div class=\"chondric-viewport\">"
-                template = "<div ng-repeat=\"(rk, rv) in openViews\" chondric-viewport=\"1\" class=\"{{rv.templateId}}\" ng-class=\"{'chondric-section': rv.isSection, 'chondric-page': !rv.isSection, active: rk == route, next: rk == nextRoute, prev: rk == lastRoute}\" cjs-transition-style route=\"{{rk}}\">";
+                template = "<div ng-repeat=\"(rk, rv) in openViews track by rk\" chondric-viewport=\"1\" class=\"{{rv.templateId}}\" ng-class=\"{'chondric-section': rv.isSection, 'chondric-page': !rv.isSection, active: rk == route, next: rk == nextRoute, prev: rk == lastRoute}\" cjs-transition-style route=\"{{rk}}\">";
                 template += "</div>";
-                template += "<div ng-repeat=\"(ck, componentDefinition) in sharedUiComponents\" cjs-shared-component testattr='{{componentId}}'>";
+                template += "<div ng-repeat=\"(ck, componentDefinition) in sharedUiComponents track by ck\" cjs-shared-component testattr='{{componentId}}'>";
                 template += "</div>";
 
                 //                template += "</div>"
 
             } else if (rv.isSection) {
                 template = "<div ng-controller=\"rv.controller\" >";
-                template += "<div ng-repeat=\"(rk, rv) in rv.subsections\" chondric-viewport=\"1\" class=\"{{rv.templateId}}\" ng-class=\"{'chondric-section': rv.isSection, 'chondric-page': !rv.isSection, active: rk == route, next: rk == nextRoute, prev: rk == lastRoute}\" cjs-transition-style route=\"{{rk}}\">";
+                template += "<div ng-repeat=\"(rk, rv) in rv.subsections track by rk\" chondric-viewport=\"1\" class=\"{{rv.templateId}}\" ng-class=\"{'chondric-section': rv.isSection, 'chondric-page': !rv.isSection, active: rk == route, next: rk == nextRoute, prev: rk == lastRoute}\" cjs-transition-style route=\"{{rk}}\">";
                 template += "</div>";
                 template += "</div>";
 
@@ -2306,18 +2548,126 @@ Chondric.registerSharedUiComponent({
     }
 });
 Chondric.registerSharedUiComponent({
-    id: "cjs-navigation-bar",
-    templateUrl: "cjs-navigation-bar.html",
-    isNative: function() {
-        return (window.NativeNav && true) || false;
+    id: "cjs-multistate-component",
+    updateTransitionSettings: function(self, thisState, otherState, position, isActivating) {
+        // set fields for individual components
+        // position will be 0 for active, -1 or +1 for inactive depending on transition direction
+        thisState.isActivating = isActivating;
+        thisState.text = "Active? " + isActivating;
+    },
+    updateCurrentState: function(self, state, active, available, data) {
+
+    },
+    chooseState: function(self, route, active, available, data) {
+        for (var i = 0; i < self.states.length; i++) {
+            if (self.states[i].route == route) return self.states[i];
+        }
+        for (var i = 0; i < self.states.length; i++) {
+            if (self.states[i] != self.activeState) return self.states[i];
+        }
     },
     controller: function($scope) {
         var self = $scope.componentDefinition;
         self.scope = $scope;
+        self.states = [{
+            route: null,
+            available: false,
+            active: false,
+            data: null
+        }, {
+            route: null,
+            available: false,
+            active: false,
+            data: null
+        }];
+        self.activeState = null;
+    },
+    setState: function(self, route, active, available, data, direction) {
+        console.log(self.id + ".setState(" + route + "," + active + "," + available + "," + data + "," + direction + ")");
+        console.log(data);
+
+        if (!data || !Object.keys(data).length) {
+            console.log("no data");
+        }
+
+
+        if (!self.initialTransitionTimeout && !active && !available && (!data || !Object.keys(data).length)) {
+            self.initialTransitionTimeout = window.setTimeout(function() {
+                self.setState(self, route, active, available, data, direction);
+                self.scope.$apply();
+            }, 100);
+            return;
+        }
+        window.clearTimeout(self.initialTransitionTimeout);
+
+        var state = self.chooseState(self, route, active, available, data);
+        state.route = route;
+        state.active = active;
+        state.available = available;
+        state.data = data;
+
+        if (self.isNative && self.isNative() && self.setNativeState) {
+            console.log("native")
+            self.setNativeState(self, route, active, available, data, direction);
+        } else if (state == self.activeState) {
+            // in place update - no animation
+            console.log("in place");
+            self.updateCurrentState(self, state, active, available, data);
+        } else {
+            console.log("new state");
+
+            var otherState = self.states[((self.states.indexOf(state)) + 1) % self.states.length];
+            self.updateTransitionSettings(self, state, otherState, 0, true);
+            self.updateTransitionSettings(self, otherState, state, direction > 0 ? 1 : -1, false);
+            self.activeState = state;
+        }
+    }
+});
+
+Chondric.registerSharedUiComponent({
+    id: "cjs-navigation-bar",
+    templateUrl: "cjs-navigation-bar.html",
+    baseComponentId: "cjs-multistate-component",
+    isNative: function() {
+        return (window.NativeNav && true) || false;
+    },
+    updateTransitionSettings: function(self, thisState, otherState, position, isActivating) {
+        console.log("navbar updateTransitionSettings - " + isActivating);
+        console.log(thisState);
+        // set fields for individual components
+        // position will be 0 for active, -1 or +1 for inactive depending on transition direction
+        thisState.isActivating = isActivating;
+        thisState.text = "Active? " + isActivating;
+        if (isActivating) {
+            if (thisState.available) {
+                if (!otherState.available) {
+                    thisState.translateY = -80 * (Math.abs(position));
+                } else {
+                    thisState.translateY = 0;
+                }
+            } else {
+                thisState.translateY = -80;
+            }
+            thisState.opacity = 1;
+        } else {
+            thisState.opacity = 0;
+        }
+    },
+    updateCurrentState: function(self, state, active, available, data) {},
+    setNativeState: function(self, route, active, available, data) {
+        if (window.NativeNav) {
+            window.NativeNav.showNavbar(route, active, data.leftButtons, data.title, data.rightButtons, data.titleChanged);
+        }
+    },
+    controller: function($scope) {
+        var self = $scope.componentDefinition;
+        self.baseController("cjs-multistate-component", $scope);
+
+        self.scope = $scope;
         $scope.globalHeaderOptions = self.globalHeaderOptions = {};
 
-        $scope.handleSharedHeaderButtonClick = function(headerOptions, b, lastTap) {
-            var routeScope = self.app.scopesForRoutes[self.route];
+        $scope.handleSharedHeaderButtonClick = function(state, b, lastTap) {
+            var routeScope = self.app.scopesForRoutes[state.route];
             if (routeScope && b.action) {
                 routeScope.$eval(b.action);
             } else if (routeScope && b.items) {
@@ -2329,13 +2679,13 @@ Chondric.registerSharedUiComponent({
             }
         };
 
-        $scope.titleChanged = function() {
-            var routeScope = self.app.scopesForRoutes[self.route];
-            if (routeScope && self.data.titleChanged) {
-                routeScope.$eval(self.data.titleChanged)(self.data.title);
+        $scope.titleChanged = function(state) {
+            var routeScope = self.app.scopesForRoutes[state.route];
+            if (routeScope && state.data.titleChanged) {
+                routeScope.$eval(state.data.titleChanged)(state.data.title);
             }
         };
-    },
+    }
     /*
     setStatePartial: function(self, initialState, finalState, progress) {
         if (!self.globalHeaderOptions) return;
@@ -2360,7 +2710,8 @@ Chondric.registerSharedUiComponent({
 
     },
     */
-    setState: function(self, route, active, available, data) {
+    /*
+    setState2: function(self, route, active, available, data) {
         if (!self.globalHeaderOptions) return;
 
         self.route = route;
@@ -2389,13 +2740,13 @@ Chondric.registerSharedUiComponent({
             }
         }
 
-    }
+    }*/
 });
 Chondric.registerSharedUiComponent({
     id: "cjs-tab-footer",
     templateUrl: "cjs-tab-footer.html",
     isNative: function() {
-        return false;
+        return window.NativeNav && true || false;
     },
     controller: function($scope) {
         var self = $scope.componentDefinition;
@@ -2409,7 +2760,6 @@ Chondric.registerSharedUiComponent({
                 routeScope.$eval(self.data.setTab || "setTab")(val);
             }
         };
-
     },
     setState: function(self, route, active, available, data) {
         self.data = data;
@@ -2417,7 +2767,11 @@ Chondric.registerSharedUiComponent({
         self.active = active;
         self.available = available;
         self.selectedTab = data.selectedTab;
-    },
+
+        if (window.NativeNav) {
+            window.NativeNav.showTabbar(route, active, data.buttons, data.selectedTab);
+        }
+    }
 
 });
 Chondric.registerSharedUiComponent({
@@ -2462,28 +2816,44 @@ Chondric.registerSharedUiComponent({
 
         if (window.NativeNav) {
             if (active && !self.popuptrigger) {
-                window.NativeNav.startNativeTransition("popup", function() {
-                    if (screen.width < 600) {
-                        document.getElementById("viewport").setAttribute("content", "width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=0");
-                    } else {
-                        document.getElementById("viewport").setAttribute("content", "width=500, height=500, initial-scale=1, maximum-scale=1, user-scalable=0");
-                    }
-                    self.popuptrigger = {};
-                    self.nativeTransition = true;
-                    self.app.scopesForRoutes[self.route].$apply();
-                });
+                self.scrollX = window.scrollX;
+                self.scrollY = window.scrollY;
+                self.originRect = null;
+                if (data.element && data.element.length) {
+                    self.originRect = data.element[0].getBoundingClientRect();
+                }
+                window.NativeNav.startNativeTransition("popup", self.originRect, function() {
+                        $("body").addClass("cjs-shared-popup-active");
+                        if (screen.width < 600) {
+                            document.getElementById("viewport").setAttribute("content", "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0");
+                        } else {
+                            document.getElementById("viewport").setAttribute("content", "width=500, height=500, initial-scale=1, maximum-scale=1, user-scalable=0");
+                        }
+                        window.scrollTo(0, 0);
+                        self.popuptrigger = {};
+                        self.nativeTransition = true;
+                        self.app.scopesForRoutes[self.route].$apply();
+                        window.NativeNav.finishNativeTransition();
+                    },
+                    self.scope.hideModal
+                );
             } else if (!active && self.popuptrigger) {
-                window.NativeNav.startNativeTransition("closepopup", function() {
-                    document.getElementById("viewport").setAttribute("content", "width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=0");
+                window.NativeNav.startNativeTransition("closepopup", self.originRect, function() {
+                    $("body").removeClass("cjs-shared-popup-active");
+                    document.getElementById("viewport").setAttribute("content", "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0");
                     self.popuptrigger = null;
                     self.app.scopesForRoutes[self.route].$apply();
+                    window.scrollTo(self.scrollX, self.scrollY);
+                    window.NativeNav.finishNativeTransition();
                 });
             }
         } else {
             if (!active) {
                 self.popuptrigger = null;
             } else {
-                self.popuptrigger = {};
+                self.popuptrigger = {
+                    element: data.element
+                };
             }
         }
     }
@@ -2493,6 +2863,8 @@ Chondric.registerSharedUiComponent({
     templateUrl: "cjs-right-panel.html",
     handledSwipeState: "rightBorder",
     transition: "coverRight",
+    nativeShowTransition: "showrightpanel",
+    nativeHideTransition: "hiderightpanel",
     isNative: function() {
         return false;
     },
@@ -2531,18 +2903,66 @@ Chondric.registerSharedUiComponent({
             transition: self.transition
         };
     },
+    forceHide: function(self) {
+        self.active = false;
+        window.scrollTo(self.scrollX, self.scrollY);
+        document.getElementById("viewport").setAttribute("content", "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0");
+
+    },
+    forceShow: function(self) {
+        self.scrollX = window.scrollX;
+        self.scrollY = window.scrollY;
+        self.active = true;
+        document.getElementById("viewport").setAttribute("content", "width=260, initial-scale=1, maximum-scale=1, user-scalable=0");
+        window.scrollTo(0, 0);
+    },
     setState: function(self, route, active, available, data) {
         self.data = data;
         self.route = route;
-        self.active = active;
         self.available = available;
 
-        if (!active) {
-            self.setPanelPosition(self, 0);
+        if (window.NativeNav) {
+            if (active && !self.active) {
+                self.originRect = null;
+                if (data.element && data.element.length) {
+                    self.originRect = data.element[0].getBoundingClientRect();
+                }
+                window.NativeNav.startNativeTransition(self.nativeShowTransition, null, function() {
+                        $("body").addClass("cjs-shared-popup-active");
+                        document.getElementById("viewport").setAttribute("content", "width=260, initial-scale=1, maximum-scale=1, user-scalable=0");
+                        self.active = active;
+                        window.scrollTo(0, 0);
+                        self.app.scopesForRoutes[self.route].$apply();
+                        window.NativeNav.finishNativeTransition();
+                    },
+                    self.scope.hideModal
+                );
+            } else if (!active && self.active) {
+                window.NativeNav.startNativeTransition(self.nativeHideTransition, null, function() {
+                    $("body").removeClass("cjs-shared-popup-active");
+                    document.getElementById("viewport").setAttribute("content", "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0");
+                    self.active = active;
+                    self.app.scopesForRoutes[self.route].$apply();
+                    window.scrollTo(self.scrollX, self.scrollY);
+                    window.NativeNav.finishNativeTransition();
+                });
+            }
         } else {
-            self.setPanelPosition(self, 1);
+            if (!active) {
+                self.setPanelPosition(self, 0);
+            } else {
+                self.setPanelPosition(self, 1);
+            }
         }
 
+
+    },
+    getSwipeNav: function(self, active, available) {
+        var d = {};
+        if (available) d[self.handledSwipeState] = {
+            component: self.id
+        };
+        return d;
     },
     updateSwipe: function(self, swipeState) {
         if (!self.available) return;
@@ -2575,6 +2995,8 @@ Chondric.registerSharedUiComponent({
     templateUrl: "cjs-left-panel.html",
     handledSwipeState: "leftBorder",
     transition: "coverLeft",
+    nativeShowTransition: "showleftpanel",
+    nativeHideTransition: "hideleftpanel",
     controller: function($scope) {
         var self = $scope.componentDefinition;
         self.baseController("cjs-right-panel", $scope);
@@ -2597,7 +3019,7 @@ Chondric.allTransitions.crossfade = {
             element.css({
                 "display": "block",
                 "opacity": 0,
-                "z-index": 9,
+                "z-index": 9
             });
         },
         cancel: function(element, prevProgress) {
@@ -2623,7 +3045,7 @@ Chondric.allTransitions.crossfade = {
             element.css({
                 "display": "block",
                 "opacity": progress,
-                "z-index": 9,
+                "z-index": 9
             });
         }
     },
@@ -2655,7 +3077,7 @@ Chondric.allTransitions.crossfade = {
             "display": "",
             "opacity": "",
             "z-index": "",
-            "-webkit-transition": "",
+            "-webkit-transition": ""
         });
     }
 };
