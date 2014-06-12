@@ -1,6 +1,6 @@
 app.createViewTemplate({
-    templateId: "cordova",
-    
+    templateId: "cordovapage",
+
     route: "/cordova",
     controller: function($scope, sharedUi) {
 

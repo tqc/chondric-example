@@ -1,5 +1,5 @@
 "use strict";
-var chondric = require("../ChondricJS/chondric-tools");
+var chondric = require("chondric-tools");
 
 require("envloader").load();
 
